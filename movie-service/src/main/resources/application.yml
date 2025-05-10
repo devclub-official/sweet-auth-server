@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: movie-service
+
+server:
+  port: 8080
+
+base-url:
+  auth-server: http://localhost:8081/api/v1
+
+jwt:
+  signing-key: 79ad0a7c51e3a480440283668c007798e6c0293fff9b86d41eebc0ebac2acde0ea6cb8ffe6f7aa0293c0301478414d3b06c22da9cab6cc7f6837b2e3fd157311
