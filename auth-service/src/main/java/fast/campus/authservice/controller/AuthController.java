@@ -2,6 +2,7 @@ package fast.campus.authservice.controller;
 
 import fast.campus.authservice.controller.request.LoginRequest;
 import fast.campus.authservice.controller.request.SimpleUserRequestBody;
+import fast.campus.authservice.controller.response.ApiResponse;
 import fast.campus.authservice.domain.User;
 import fast.campus.authservice.dto.response.TokenResponseDto;
 import fast.campus.authservice.service.AuthService;
@@ -35,8 +36,27 @@ public class AuthController {
 //    }
 
     @PostMapping("/token")
-    public ResponseEntity<TokenResponseDto> login(@RequestBody LoginRequest loginRequest) {
-        TokenResponseDto tokenResponse = authService.authenticateUser(loginRequest);
-        return ResponseEntity.ok(tokenResponse);
+    public ResponseEntity<ApiResponse<TokenResponseDto>> login(@RequestBody LoginRequest loginRequest) {
+        try {
+            TokenResponseDto tokenResponseDto = authService.authenticateUser(loginRequest);
+
+            ApiResponse<TokenResponseDto> response = ApiResponse.<TokenResponseDto>builder()
+                    .success(true)
+                    .code("LOGIN_SUCCESS")
+                    .message("로그인이 성공적으로 완료되었습니다.")
+                    .data(tokenResponseDto)
+                    .build();
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            ApiResponse<TokenResponseDto> errorResponse = ApiResponse.<TokenResponseDto>builder()
+                    .success(false)
+                    .code("LOGIN_FAILED")
+                    .message(e.getMessage())
+                    .data(null)
+                    .build();
+
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
     }
 }

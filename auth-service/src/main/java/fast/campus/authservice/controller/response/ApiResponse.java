@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class UserUpdateResponse<T> {
+public class ApiResponse<T> {
 
     boolean success;
 
