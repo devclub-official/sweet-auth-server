@@ -20,6 +20,14 @@ public class PasswordEncryptionAspect {
 
     private final EncryptService encryptService;
 
+    /**
+     * Advice: Aspect의 기능을 정의한 것으로 메서드의 실행 전, 후, 예외 처리 발생 시 실행되는 코드를 의미
+     * Around : 대상 “메서드” 실행 전, 후 또는 예외 발생 시에 Advice 를 실행합니다.
+     *
+     * @param pjp
+     * @return
+     * @throws Throwable
+     */
     @Around("execution(* fast.campus.authservice.controller..*.*(..))")
     public Object passwordEncryptionAspect(ProceedingJoinPoint pjp) throws Throwable {
         Arrays.stream(pjp.getArgs())

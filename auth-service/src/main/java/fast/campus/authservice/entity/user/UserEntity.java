@@ -2,34 +2,59 @@ package fast.campus.authservice.entity.user;
 
 import fast.campus.authservice.domain.User;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
+import java.time.LocalDateTime;
 
 @Getter
+@Setter
 @Entity
 @Table(name = "users")
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
-    @Column
+    @Column(nullable = false, unique = true)
     private String email;
 
-    @Column
+    @Column(nullable = false)
     private String password;
 
-    @Column
+    @Column(nullable = false, unique = true, length = 30)
     private String username;
 
-    public UserEntity(String email, String password, String username) {
-        this.email = email;
-        this.password = password;
-        this.username = username;
+    @Column(length = 150)
+    private String bio;
+
+    @Column(name = "profile_image", length = 255)
+    private String profileImage;
+
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = createdAt;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 
     public User toDomain() {
-        return new User(email, password, username);
+        return User.builder()
+                .id(id)
+                .email(email)
+                .username(username)
+                .build();
     }
 }

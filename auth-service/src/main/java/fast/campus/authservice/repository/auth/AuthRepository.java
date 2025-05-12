@@ -52,6 +52,27 @@ public class AuthRepository {
                     .toDomain();
         });
     }
+
+    // 사용자 정보 업데이트 메서드 추가
+    public User updateUser(String email, User user) {
+        return writeTransactionOperations.execute(status -> {
+            UserEntity userEntity = userJpaRepository.findUserEntityByEmail(email)
+                    .orElseThrow(InvalidAuthException::new);
+
+            // 업데이트할 필드만 변경
+            if (user.getUsername() != null && !user.getUsername().isEmpty()) {
+                userEntity.setUsername(user.getUsername());
+            }
+
+            if (user.getProfileImage() != null) {
+                userEntity.setProfileImage(user.getProfileImage());
+            }
+
+            // 변경된 엔티티 저장
+            UserEntity updatedEntity = userJpaRepository.save(userEntity);
+            return updatedEntity.toDomain();
+        });
+    }
 }
 
 

@@ -19,3 +19,8 @@ spring:
     show-sql: true
 server:
   port: 8081
+
+jwt:
+  secret: F8Myz55d0Wy74RHjKrq0NY0lFfVb5K1L
+  access-token-expiration: 600000  # 10 min: 10min * 60 sec * 1000 millisecond
+  refresh-token-expiration: 10800000  # 10800000 3 hours: 3hours * 60min * 60sec * 1000 millisecond
