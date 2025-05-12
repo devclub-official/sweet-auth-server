@@ -1,5 +1,6 @@
 package fast.campus.authservice.service;
 
+import fast.campus.authservice.controller.request.UserUpdateRequestBody;
 import fast.campus.authservice.domain.User;
 import fast.campus.authservice.entity.user.UserEntity;
 import fast.campus.authservice.repository.auth.AuthRepository;
@@ -40,11 +41,11 @@ public class UserService {
 
     @Transactional
     // 사용자 정보 업데이트 메서드 추가
-    public User updateUserInfo(String email, User user) {
+    public User updateUserInfo(String email, UserUpdateRequestBody updateRequestBody) {
         // 이메일로 사용자 존재 여부 확인
         authRepository.getUserByUserId(email);
 
         // 사용자 정보 업데이트
-        return authRepository.updateUser(email, user);
+        return authRepository.updateUser(email, updateRequestBody);
     }
 }

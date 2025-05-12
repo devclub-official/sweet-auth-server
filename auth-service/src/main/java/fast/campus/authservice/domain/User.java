@@ -1,5 +1,6 @@
 package fast.campus.authservice.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import fast.campus.authservice.entity.user.UserEntity;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,6 +18,8 @@ public class User implements UserDetails {
 
     private Long id;
     private String email;
+
+    @JsonIgnore
     private String password;
     private String username;
     private String profileImage;
@@ -32,6 +35,7 @@ public class User implements UserDetails {
         return List.of();
     }
 
+    @JsonIgnore
     @Override
     public String getPassword() {
         return this.password;
@@ -39,6 +43,7 @@ public class User implements UserDetails {
 
     @Override
     public String getUsername() {
+//        return String.valueOf(this.id);
         return this.email;
     }
 

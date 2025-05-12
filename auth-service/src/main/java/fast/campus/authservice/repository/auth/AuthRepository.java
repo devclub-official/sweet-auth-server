@@ -1,5 +1,6 @@
 package fast.campus.authservice.repository.auth;
 
+import fast.campus.authservice.controller.request.UserUpdateRequestBody;
 import fast.campus.authservice.domain.User;
 import fast.campus.authservice.entity.user.UserEntity;
 import fast.campus.authservice.exception.InvalidAuthException;
@@ -54,18 +55,18 @@ public class AuthRepository {
     }
 
     // 사용자 정보 업데이트 메서드 추가
-    public User updateUser(String email, User user) {
+    public User updateUser(String email, UserUpdateRequestBody updateRequestBody) {
         return writeTransactionOperations.execute(status -> {
             UserEntity userEntity = userJpaRepository.findUserEntityByEmail(email)
                     .orElseThrow(InvalidAuthException::new);
 
             // 업데이트할 필드만 변경
-            if (user.getUsername() != null && !user.getUsername().isEmpty()) {
-                userEntity.setUsername(user.getUsername());
+            if (updateRequestBody.getUsername() != null && !updateRequestBody.getUsername().isEmpty()) {
+                userEntity.setUsername(updateRequestBody.getUsername());
             }
 
-            if (user.getProfileImage() != null) {
-                userEntity.setProfileImage(user.getProfileImage());
+            if (updateRequestBody.getProfileImage() != null) {
+                userEntity.setProfileImage(updateRequestBody.getProfileImage());
             }
 
             // 변경된 엔티티 저장

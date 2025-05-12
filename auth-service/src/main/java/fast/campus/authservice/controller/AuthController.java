@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
     private final JwtUtil jwtUtil;
@@ -29,12 +29,12 @@ public class AuthController {
     @Value("${jwt.refresh-token-expiration}")
     private long refreshTokenExpSec;
 
-    @PostMapping("/users/auth")
-    public String auth(@RequestBody SimpleUserRequestBody requestBody) {
-        return userService.auth(requestBody.getEmail(), requestBody.getPassword());
-    }
+//    @PostMapping("/users")
+//    public String auth(@RequestBody SimpleUserRequestBody requestBody) {
+//        return userService.auth(requestBody.getEmail(), requestBody.getPassword());
+//    }
 
-    @PostMapping("/users/auth/token")
+    @PostMapping("/token")
     public ResponseEntity<TokenResponseDto> login(@RequestBody LoginRequest loginRequest) {
         TokenResponseDto tokenResponse = authService.authenticateUser(loginRequest);
         return ResponseEntity.ok(tokenResponse);

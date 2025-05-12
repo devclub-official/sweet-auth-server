@@ -30,7 +30,7 @@ public class UserEntity {
     @Column(length = 150)
     private String bio;
 
-    @Column(name = "profile_image", length = 255)
+    @Column(name = "profile_image")
     private String profileImage;
 
     @Column(name = "created_at", updatable = false)
@@ -55,6 +55,7 @@ public class UserEntity {
                 .id(id)
                 .email(email)
                 .username(username)
+                .profileImage(profileImage)
                 .build();
     }
 }
