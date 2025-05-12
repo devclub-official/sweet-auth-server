@@ -88,4 +88,39 @@ public class UserController {
             return ResponseEntity.badRequest().body(errorResponse);
         }
     }
+
+    @GetMapping(value = "/users")
+    public ResponseEntity<ApiResponse<UserResponseDTO>> getUserInfo(@AuthenticationPrincipal User userDetails) {
+        try {
+            // 인증된 사용자의 정보를 가져옵니다
+            User user = userService.getUserByEmail(userDetails.getEmail());
+
+            UserResponseDTO responseData = UserResponseDTO.builder()
+                    .id(user.getId())
+                    .email(user.getEmail())
+                    .username(user.getNickname())
+                    .profileImage(user.getProfileImage())
+                    .build();
+
+            // 성공 응답 생성
+            ApiResponse<UserResponseDTO> response = ApiResponse.<UserResponseDTO>builder()
+                    .success(true)
+                    .code("USER_INFO_SUCCESS")
+                    .message("사용자 정보가 성공적으로 조회되었습니다.")
+                    .data(responseData)
+                    .build();
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            // 실패 응답 생성
+            ApiResponse<UserResponseDTO> errorResponse = ApiResponse.<UserResponseDTO>builder()
+                    .success(false)
+                    .code("USER_INFO_FAILED")
+                    .message(e.getMessage())
+                    .data(null)
+                    .build();
+
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
 }

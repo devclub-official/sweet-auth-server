@@ -5,6 +5,7 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.function.Function;
 
+@Slf4j
 @Component
 public class JwtUtil {
 //    @Value("${jwt.secret}")
@@ -63,26 +65,70 @@ public class JwtUtil {
 
 
     public String generateAccessToken(Authentication authentication) {
-        UserDetails userPrincipal = (UserDetails) authentication.getPrincipal();
-        return Jwts.builder()
-                .setSubject(userPrincipal.getUsername())
-                .setIssuedAt(new Date())
-                .setExpiration(new Date((new Date()).getTime() + accessTokenExpiration))
-                .signWith(SignatureAlgorithm.HS256, secretKey)
-                .compact();
+        String username = ((UserDetails) authentication.getPrincipal()).getUsername();
+        return createToken(username, accessTokenExpiration);
+    }
+
+    public String generateAccessToken(UserDetails userDetails) {
+        return createToken(userDetails.getUsername(), accessTokenExpiration);
     }
 
     public String generateRefreshToken(Authentication authentication) {
-        UserDetails userPrincipal = (UserDetails) authentication.getPrincipal();
+        String username = ((UserDetails) authentication.getPrincipal()).getUsername();
+        return createToken(username, refreshTokenExpiration);
+    }
+
+    public String generateRefreshToken(UserDetails userDetails) {
+        return createToken(userDetails.getUsername(), refreshTokenExpiration);
+    }
+
+    // 토큰 생성 공통 로직
+    private String createToken(String subject, long expirationTime) {
         return Jwts.builder()
-                .setSubject(userPrincipal.getUsername())
+                .setSubject(subject)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date((new Date()).getTime() + refreshTokenExpiration))
-                .signWith(SignatureAlgorithm.HS256, secretKey)
+                .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
+                .signWith(SignatureAlgorithm.HS256, secretKey.getBytes(StandardCharsets.UTF_8))
                 .compact();
     }
 
-    public Claims parse(String token) {
+//    public Claims parse(String token) {
+//        return Jwts.parser()
+//                .setSigningKey(secretKey.getBytes(StandardCharsets.UTF_8))
+//                .build()
+//                .parseClaimsJws(token)
+//                .getBody();
+//    }
+
+//    public String getEmailFromToken(String token) {
+//        System.out.println(Jwts.parser()
+//                .setSigningKey(secretKey)
+//                .build()
+//                .parseClaimsJws(token)
+//                .getBody()
+//                .getSubject());
+//
+//
+//        return Jwts.parser()
+//                .setSigningKey(secretKey)
+//                .build()
+//                .parseClaimsJws(token)
+//                .getBody()
+//                .getSubject();
+//    }
+//
+//    public boolean validateToken(String authToken) {
+//        try {
+//            Jwts.parser().setSigningKey(secretKey).build().parseClaimsJws(authToken);
+//            return true;
+//        } catch (JwtException | IllegalArgumentException e) {
+//            // 로그 또는 예외 처리
+//        }
+//        return false;
+//    }
+
+    // 토큰에서 모든 Claims 추출
+    public Claims extractAllClaims(String token) {
         return Jwts.parser()
                 .setSigningKey(secretKey.getBytes(StandardCharsets.UTF_8))
                 .build()
@@ -90,22 +136,28 @@ public class JwtUtil {
                 .getBody();
     }
 
-    public String getEmailFromToken(String token) {
-        return Jwts.parser()
-                .setSigningKey(secretKey)
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+    // 토큰에서 이메일(주제) 추출
+    public String extractEmail(String token) {
+        log.debug(token);
+        log.debug(extractClaim(token, Claims::getSubject));
+
+        System.out.println(extractClaim(token, Claims::getSubject));
+        return extractClaim(token, Claims::getSubject);
     }
 
-    public boolean validateToken(String authToken) {
+    // 토큰에서 특정 Claim 추출
+    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = extractAllClaims(token);
+        return claimsResolver.apply(claims);
+    }
+
+    // 토큰 유효성 검사
+    public boolean validateToken(String token) {
         try {
-            Jwts.parser().setSigningKey(secretKey).build().parseClaimsJws(authToken);
+            extractAllClaims(token); // 예외 발생 시 false
             return true;
         } catch (JwtException | IllegalArgumentException e) {
-            // 로그 또는 예외 처리
+            return false;
         }
-        return false;
     }
 }

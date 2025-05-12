@@ -20,6 +20,10 @@ public class UserService {
     private final EncryptService encryptService;
 
     public User createNewUser(String email, String password, String username) {
+        if (userJpaRepository.findUserEntityByEmail(email).isPresent()) {
+            throw new RuntimeException("이미 등록된 이메일입니다.");
+        }
+
         return authRepository.createNewUser(
                 User.builder()
                         .email(email)
@@ -27,16 +31,6 @@ public class UserService {
                         .username(username)
                         .build()
         );
-    }
-
-    public String auth(String userId, String password) {
-        User user = authRepository.getUserByUserId(userId);
-
-        if (encryptService.matches(password, user.getPassword())) {
-            return "인증 성공";
-        }
-
-        throw new RuntimeException("비밀번호 맞지 않음!");
     }
 
     @Transactional
@@ -47,5 +41,13 @@ public class UserService {
 
         // 사용자 정보 업데이트
         return authRepository.updateUser(email, updateRequestBody);
+    }
+
+    /**
+     * 이메일로 사용자 정보 조회
+     */
+    @Transactional(readOnly = true)
+    public User getUserByEmail(String email) {
+        return authRepository.getUserByUserId(email);
     }
 }

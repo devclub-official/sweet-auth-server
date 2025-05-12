@@ -20,6 +20,10 @@ spring:
 server:
   port: 8081
 
+#logging:
+#  level:
+#    root: debug
+
 jwt:
   secret: 7KAwWI4D6wbwSZ4IdUsrikAbrrwBJaIsZInN7YfE1WXaS4bep7p6eZGPi4MBNFYd
   access-token-expiration: 600000  # 10 min: 10min * 60 sec * 1000 millisecond
