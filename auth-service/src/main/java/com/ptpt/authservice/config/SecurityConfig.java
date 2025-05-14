@@ -52,6 +52,7 @@ public class SecurityConfig {
         );
 
         http.authorizeHttpRequests(c -> {
+            c.requestMatchers("/v3/api-docs").permitAll();
             c.requestMatchers("/static/js/**","/static/css/**","/static/img/**"
                     ,"/swagger-ui/**","/v3/api-docs/**").permitAll(); // swagger 관련 endpoint 허용
             c.requestMatchers("/auth/**").permitAll();  // 인증 관련 엔드포인트 허용
