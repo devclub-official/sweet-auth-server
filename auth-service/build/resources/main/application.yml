@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: auth-service
+  datasource:
+    hikari:
+      jdbc-url: jdbc:mysql://localhost:33306/ptpt
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      username: root
+      password: qwer1234
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    database: mysql
+    show-sql: true
+server:
+  port: 8081
+
+#logging:
+#  level:
+#    root: debug
+
+#springdoc:
+#  swagger-ui:
+#    path: /swagger-ui.html
+#    operationsSorter: method
+#    tagsSorter: alpha
+#    display-request-duration: true
+#  api-docs:
+#    path: /api-docs
+
+jwt:
+  secret: 7KAwWI4D6wbwSZ4IdUsrikAbrrwBJaIsZInN7YfE1WXaS4bep7p6eZGPi4MBNFYd
+  access-token-expiration: 600000  # 10 min: 10min * 60 sec * 1000 millisecond
+  refresh-token-expiration: 10800000  # 10800000 3 hours: 3hours * 60min * 60sec * 1000 millisecond
