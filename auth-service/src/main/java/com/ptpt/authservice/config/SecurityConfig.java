@@ -1,6 +1,8 @@
 package com.ptpt.authservice.config;
 
 import com.ptpt.authservice.filter.JwtAuthenticationFilter;
+import com.ptpt.authservice.handler.CustomAccessDeniedHandler;
+import com.ptpt.authservice.handler.CustomAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,6 +24,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
 
     @Bean
@@ -52,11 +56,16 @@ public class SecurityConfig {
         );
 
         http.authorizeHttpRequests(c -> {
-            c.requestMatchers("/static/js/**","/static/css/**","/static/img/**"
-                    ,"/swagger-ui/**","/v3/api-docs/**").permitAll(); // swagger 관련 endpoint 허용
+            c.requestMatchers("/swagger-ui/**").permitAll(); // swagger 관련 endpoint 허용
+            c.requestMatchers("/v3/api-docs/**").permitAll();
             c.requestMatchers("/auth/**").permitAll();  // 인증 관련 엔드포인트 허용
             c.requestMatchers(HttpMethod.POST, "/api/users").permitAll();  // 회원가입만 허용
             c.anyRequest().authenticated();
+        });
+
+        http.exceptionHandling(except -> {
+            except.authenticationEntryPoint(customAuthenticationEntryPoint);
+            except.accessDeniedHandler(customAccessDeniedHandler);
         });
 
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
