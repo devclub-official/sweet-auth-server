@@ -4,8 +4,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(description = "사용자 정보 수정 요청 DTO")
@@ -17,6 +19,6 @@ public class UserUpdateRequestBody {
     @Schema(description = "사용자 닉네임", example = "example")
     private String username;
 
-    @Schema(description = "프로필 이미지 URL", example = "profile_image_url.jpg")
+    @Schema(description = "프로필 이미지 경로", example = "/images/profiles/1/profile.jpg")
     private String profileImage;
 }

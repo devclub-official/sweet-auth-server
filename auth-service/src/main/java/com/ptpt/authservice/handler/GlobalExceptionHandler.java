@@ -8,9 +8,12 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-//@RestControllerAdvice
+//@RestControllerAdvice(annotations = {RestController.class}, basePackages = {"com.example.HyThon.web.controller"})
+//출처: https://dev-meung.tistory.com/entry/해커톤-HY-THON-트러블슈팅-Swagger-500-에러-Failed-to-load-API-definition [IT::Coding:티스토리]
+//@RestControllerAdvice(annotations = {RestController.class}, basePackageClasses = {DiaryController.class, MemberController.class, TransmissionController.class})
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(AuthenticationException.class)
