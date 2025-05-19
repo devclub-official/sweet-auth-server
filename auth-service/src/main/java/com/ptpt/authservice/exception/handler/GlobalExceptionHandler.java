@@ -1,4 +1,4 @@
-package com.ptpt.authservice.handler;
+package com.ptpt.authservice.exception.handler;
 
 import com.ptpt.authservice.controller.response.CustomApiResponse;
 import org.springframework.http.HttpStatus;

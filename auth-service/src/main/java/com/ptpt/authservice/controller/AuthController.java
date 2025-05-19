@@ -3,10 +3,12 @@ package com.ptpt.authservice.controller;
 import com.ptpt.authservice.controller.request.LoginRequest;
 import com.ptpt.authservice.controller.request.RefreshTokenRequest;
 import com.ptpt.authservice.controller.response.CustomApiResponse;
-import com.ptpt.authservice.dto.response.TokenResponseDto;
+import com.ptpt.authservice.controller.response.TokenResponseDTO;
+import com.ptpt.authservice.enums.ApiResponseCode;
 import com.ptpt.authservice.service.AuthService;
 import com.ptpt.authservice.service.JwtBlacklistService;
 import com.ptpt.authservice.service.UserService;
+import com.ptpt.authservice.swagger.SwaggerAuthResponseDTO;
 import com.ptpt.authservice.swagger.SwaggerErrorResponseDTO;
 import com.ptpt.authservice.util.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
@@ -48,7 +50,7 @@ public class AuthController {
                     description = "로그인 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = TokenResponseDto.class)
+                            schema = @Schema(implementation = SwaggerAuthResponseDTO.class)
                     )
             ),
             @ApiResponse(
@@ -61,27 +63,14 @@ public class AuthController {
             )
     })
     @PostMapping("/login")
-    public ResponseEntity<CustomApiResponse<TokenResponseDto>> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<CustomApiResponse<TokenResponseDTO>> login(@RequestBody LoginRequest loginRequest) {
         try {
-            TokenResponseDto tokenResponseDto = authService.authenticateUser(loginRequest);
+            TokenResponseDTO tokenResponseDto = authService.authenticateUser(loginRequest);
 
-            CustomApiResponse<TokenResponseDto> response = CustomApiResponse.<TokenResponseDto>builder()
-                    .success(true)
-                    .code("LOGIN_SUCCESS")
-                    .message("로그인이 성공적으로 완료되었습니다.")
-                    .data(tokenResponseDto)
-                    .build();
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(CustomApiResponse.of(ApiResponseCode.AUTH_LOGIN_SUCCESS, tokenResponseDto));
         } catch (Exception e) {
-            CustomApiResponse<TokenResponseDto> errorResponse = CustomApiResponse.<TokenResponseDto>builder()
-                    .success(false)
-                    .code("LOGIN_FAILED")
-                    .message(e.getMessage())
-                    .data(null)
-                    .build();
-
-            return ResponseEntity.badRequest().body(errorResponse);
+            return ResponseEntity.badRequest().body(
+                    CustomApiResponse.of(ApiResponseCode.AUTH_LOGIN_FAILED, e.getMessage(), null));
         }
     }
 
@@ -96,7 +85,7 @@ public class AuthController {
                     description = "토큰 갱신 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = TokenResponseDto.class)
+                            schema = @Schema(implementation = SwaggerAuthResponseDTO.class)
                     )
             ),
             @ApiResponse(
@@ -109,30 +98,20 @@ public class AuthController {
             )
     })
     @PostMapping("/token/refresh")
-    public ResponseEntity<CustomApiResponse<TokenResponseDto>> refreshToken(@RequestBody RefreshTokenRequest request) {
+    public ResponseEntity<CustomApiResponse<TokenResponseDTO>> refreshToken(@RequestBody RefreshTokenRequest request) {
         try {
             String refreshToken = request.getRefreshToken();
 
             // 블랙리스트에 Refresh Token이 있는지 확인
             if (jwtBlacklistService.isTokenBlacklisted(refreshToken)) {
-                CustomApiResponse<TokenResponseDto> errorResponse = CustomApiResponse.<TokenResponseDto>builder()
-                        .success(false)
-                        .code("TOKEN_BLACKLISTED")
-                        .message("해당 Refresh Token은 블랙리스트에 등록되어 있습니다.")
-                        .data(null)
-                        .build();
-                return ResponseEntity.badRequest().body(errorResponse);
+                return ResponseEntity.badRequest().body(
+                        CustomApiResponse.of(ApiResponseCode.AUTH_TOKEN_BLACKLISTED, null));
             }
 
             // Refresh Token이 유효한지 검증
             if (!jwtUtil.validateToken(refreshToken)) {
-                CustomApiResponse<TokenResponseDto> errorResponse = CustomApiResponse.<TokenResponseDto>builder()
-                        .success(false)
-                        .code("INVALID_REFRESH_TOKEN")
-                        .message("유효하지 않은 Refresh Token입니다.")
-                        .data(null)
-                        .build();
-                return ResponseEntity.badRequest().body(errorResponse);
+                return ResponseEntity.badRequest().body(
+                        CustomApiResponse.of(ApiResponseCode.AUTH_TOKEN_INVALID, null));
             }
 
             // Refresh Token에서 이메일 추출
@@ -142,24 +121,12 @@ public class AuthController {
 //            jwtBlacklistService.addToBlacklist(refreshToken);
 
             // 새로운 Access Token과 Refresh Token 발급
-            TokenResponseDto tokenResponseDto = authService.refreshAccessToken(email);
+            TokenResponseDTO tokenResponseDto = authService.refreshAccessToken(email);
 
-            CustomApiResponse<TokenResponseDto> response = CustomApiResponse.<TokenResponseDto>builder()
-                    .success(true)
-                    .code("TOKEN_REFRESH_SUCCESS")
-                    .message("새로운 토큰이 성공적으로 발급되었습니다.")
-                    .data(tokenResponseDto)
-                    .build();
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(CustomApiResponse.of(ApiResponseCode.AUTH_REFRESH_SUCCESS, tokenResponseDto));
         } catch (Exception e) {
-            CustomApiResponse<TokenResponseDto> errorResponse = CustomApiResponse.<TokenResponseDto>builder()
-                    .success(false)
-                    .code("TOKEN_REFRESH_FAILED")
-                    .message(e.getMessage())
-                    .data(null)
-                    .build();
-            return ResponseEntity.badRequest().body(errorResponse);
+            return ResponseEntity.badRequest().body(
+                    CustomApiResponse.of(ApiResponseCode.AUTH_REFRESH_FAILED, e.getMessage(), null));
         }
     }
 

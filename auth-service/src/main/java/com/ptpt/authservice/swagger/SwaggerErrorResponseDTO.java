@@ -10,13 +10,13 @@ public class SwaggerErrorResponseDTO<T> {
     @Schema(description = "API 요청 성공 여부", example = "false")
     boolean success;
 
-    @Schema(description = "응답 코드", example = "E0101")
+    @Schema(description = "응답 코드", example = "E0000")
     String code;
 
-    @Schema(description = "응답 메시지", example = "예외 메시지 전송 or 로그인에 실패했습니다.")
+    @Schema(description = "응답 메시지", example = "예외 메시지 전송 or 커스텀 메시지")
     String message;
 
-    @Schema(description = "응답 데이터", nullable = true)
-    T data;
+    @Schema(description = "응답 데이터")
+    T data = null;
 
 }

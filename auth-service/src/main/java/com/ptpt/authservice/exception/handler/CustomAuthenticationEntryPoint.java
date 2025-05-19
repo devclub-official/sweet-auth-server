@@ -1,7 +1,8 @@
-package com.ptpt.authservice.handler;
+package com.ptpt.authservice.exception.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ptpt.authservice.controller.response.CustomApiResponse;
+import com.ptpt.authservice.enums.ApiResponseCode;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -30,12 +31,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
 
-        CustomApiResponse<Void> apiResponse = CustomApiResponse.<Void>builder()
-                .success(false)
-                .code("UNAUTHORIZED")
-                .message("인증에 실패했습니다. 유효한 자격 증명이 필요합니다.")
-                .data(null)
-                .build();
+        CustomApiResponse<Void> apiResponse = CustomApiResponse.of(ApiResponseCode.AUTH_UNAUTHORIZED, null);
 
         objectMapper.writeValue(response.getWriter(), apiResponse);
     }

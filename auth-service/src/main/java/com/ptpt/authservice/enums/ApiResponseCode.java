@@ -13,7 +13,18 @@ public enum ApiResponseCode {
     // 인증 관련 실패 코드
     AUTH_LOGIN_FAILED("E0101", "로그인에 실패했습니다."),
     AUTH_REFRESH_FAILED("E0102", "토큰 갱신에 실패했습니다."),
+    AUTH_TOKEN_BLACKLISTED("E0103", "해당 토큰은 블랙리스트에 등록되어 사용이 중지되었습니다."),
+    AUTH_TOKEN_EXPIRED("E0104", "토큰이 만료되었습니다."),
+    AUTH_TOKEN_MALFORMED("E0105", "토큰 형식이 올바르지 않습니다."),
+    AUTH_TOKEN_MISSING("E0106", "인증 토큰이 누락되었습니다."),
+    AUTH_TOKEN_UNSUPPORTED("E0107", "지원되지 않는 토큰 형식입니다."),
+    AUTH_TOKEN_INVALID_SIGNATURE("E0108", "토큰 서명이 유효하지 않습니다."),
     AUTH_TOKEN_INVALID("E0109", "유효하지 않은 토큰입니다."),
+
+    // HTTP 상태 코드 관련 오류
+    // 인증/인가 관련 오류 코드
+    AUTH_UNAUTHORIZED("E0401", "인증에 실패했습니다. 유효한 자격 증명이 필요합니다."),
+    AUTH_FORBIDDEN("E0409", "이 리소스에 대한 접근 권한이 없습니다."),
 
     // 사용자 관련 성공 코드
     USER_CREATE_SUCCESS("S0203", "사용자가 성공적으로 생성되었습니다."),

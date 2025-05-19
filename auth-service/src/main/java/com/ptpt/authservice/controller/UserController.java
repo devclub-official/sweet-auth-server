@@ -6,6 +6,7 @@ import com.ptpt.authservice.controller.request.UserUpdateRequestBody;
 import com.ptpt.authservice.controller.response.UserResponseDTO;
 import com.ptpt.authservice.controller.response.CustomApiResponse;
 import com.ptpt.authservice.domain.User;
+import com.ptpt.authservice.enums.ApiResponseCode;
 import com.ptpt.authservice.service.UserService;
 import com.ptpt.authservice.swagger.SwaggerErrorResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -68,23 +69,10 @@ public class UserController {
                     .profileImage(newUser.getProfileImage())
                     .build();
 
-            CustomApiResponse<UserResponseDTO> response = CustomApiResponse.<UserResponseDTO>builder()
-                    .success(true)
-                    .code("USER_CREATE_SUCCESS")
-                    .message("사용자가 성공적으로 생성되었습니다.")
-                    .data(responseData)
-                    .build();
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(CustomApiResponse.of(ApiResponseCode.USER_CREATE_SUCCESS, responseData));
         } catch (Exception e) {
-            CustomApiResponse<UserResponseDTO> errorResponse = CustomApiResponse.<UserResponseDTO>builder()
-                    .success(false)
-                    .code("USER_CREATE_FAILED")
-                    .message(e.getMessage())
-                    .data(null)
-                    .build();
-
-            return ResponseEntity.badRequest().body(errorResponse);
+            return ResponseEntity.badRequest().body(
+                    CustomApiResponse.of(ApiResponseCode.USER_CREATE_FAILED, e.getMessage(), null));
         }
     }
 
@@ -157,25 +145,10 @@ public class UserController {
                     .profileImage(updatedUser.getProfileImage())
                     .build();
 
-            // 성공 응답 생성
-            CustomApiResponse<UserResponseDTO> response = CustomApiResponse.<UserResponseDTO>builder()
-                    .success(true)
-                    .code("USER_UPDATE_SUCCESS")
-                    .message("사용자 정보가 성공적으로 업데이트되었습니다.")
-                    .data(responseData)
-                    .build();
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(CustomApiResponse.of(ApiResponseCode.USER_UPDATE_SUCCESS, responseData));
         } catch (Exception e) {
-            // 실패 응답 생성
-            CustomApiResponse<UserResponseDTO> errorResponse = CustomApiResponse.<UserResponseDTO>builder()
-                    .success(false)
-                    .code("USER_UPDATE_FAILED")
-                    .message(e.getMessage())
-                    .data(null)
-                    .build();
-
-            return ResponseEntity.badRequest().body(errorResponse);
+            return ResponseEntity.badRequest().body(
+                    CustomApiResponse.of(ApiResponseCode.USER_UPDATE_FAILED, e.getMessage(), null));
         }
     }
 
@@ -224,25 +197,10 @@ public class UserController {
                     .profileImage(user.getProfileImage())
                     .build();
 
-            // 성공 응답 생성
-            CustomApiResponse<UserResponseDTO> response = CustomApiResponse.<UserResponseDTO>builder()
-                    .success(true)
-                    .code("USER_INFO_SUCCESS")
-                    .message("사용자 정보가 성공적으로 조회되었습니다.")
-                    .data(responseData)
-                    .build();
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(CustomApiResponse.of(ApiResponseCode.USER_READ_SUCCESS, responseData));
         } catch (Exception e) {
-            // 실패 응답 생성
-            CustomApiResponse<UserResponseDTO> errorResponse = CustomApiResponse.<UserResponseDTO>builder()
-                    .success(false)
-                    .code("USER_INFO_FAILED")
-                    .message(e.getMessage())
-                    .data(null)
-                    .build();
-
-            return ResponseEntity.badRequest().body(errorResponse);
+            return ResponseEntity.badRequest().body(
+                    CustomApiResponse.of(ApiResponseCode.USER_READ_FAILED, e.getMessage(), null));
         }
     }
 }

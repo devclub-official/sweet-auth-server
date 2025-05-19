@@ -1,8 +1,8 @@
 package com.ptpt.authservice.config;
 
 import com.ptpt.authservice.filter.JwtAuthenticationFilter;
-import com.ptpt.authservice.handler.CustomAccessDeniedHandler;
-import com.ptpt.authservice.handler.CustomAuthenticationEntryPoint;
+import com.ptpt.authservice.exception.handler.CustomAccessDeniedHandler;
+import com.ptpt.authservice.exception.handler.CustomAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

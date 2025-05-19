@@ -13,13 +13,21 @@ public class CustomApiResponse<T> {
     @Schema(description = "API 요청 성공 여부", example = "true")
     boolean success;
 
-    @Schema(description = "응답 코드", example = "LOGIN_SUCCESS")
+    @Schema(description = "응답 코드", example = "S0000")
     String code;
 
-    @Schema(description = "응답 메시지", example = "로그인이 성공적으로 완료되었습니다.")
+    @Schema(description = "응답 메시지", example = "코드표 참조")
     String message;
 
-    @Schema(description = "응답 데이터", nullable = true)
+    @Schema(
+        description = "응답 데이터",
+        nullable = true,
+        anyOf = {
+        UserResponseDTO.class,
+        TokenResponseDTO.class
+    },
+            example = "{\"id\":1,\"username\":\"홍길동\",\"email\":\"user@example.com\",\"profileImage\":\"profile.jpg\"}"
+    )
     T data;
 
     // ApiResponseCode Enum을 활용한 응답 생성 정적 메서드

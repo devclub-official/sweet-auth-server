@@ -1,7 +1,7 @@
 package com.ptpt.authservice.service;
 
 import com.ptpt.authservice.controller.request.LoginRequest;
-import com.ptpt.authservice.dto.response.TokenResponseDto;
+import com.ptpt.authservice.controller.response.TokenResponseDTO;
 import com.ptpt.authservice.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,7 +26,7 @@ public class AuthService {
     @Value("${jwt.refresh-token-expiration}")
     private long refreshTokenExpiration; // 밀리초 단위, 예: 604800000 (7일)
 
-    public TokenResponseDto authenticateUser(LoginRequest loginRequest) {
+    public TokenResponseDTO authenticateUser(LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginRequest.getEmail(),
@@ -38,7 +38,7 @@ public class AuthService {
         String accessToken = jwtUtil.generateAccessToken(authentication);
         String refreshToken = jwtUtil.generateRefreshToken(authentication);
 
-        return TokenResponseDto.builder()
+        return TokenResponseDTO.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .accessTokenExpiresIn(accessTokenExpiration) // @Value 주입된 값 사용
@@ -47,7 +47,7 @@ public class AuthService {
     }
 
     // Refresh Token을 사용하여 새로운 Access Token과 Refresh Token 발급
-    public TokenResponseDto refreshAccessToken(String email) {
+    public TokenResponseDTO refreshAccessToken(String email) {
         // 기존 리프레시 토큰을 블랙리스트에 추가하는 로직은 컨트롤러에서 처리
 
         // 사용자를 이메일로 로드
@@ -57,7 +57,7 @@ public class AuthService {
         String accessToken = jwtUtil.generateAccessToken(userDetails);
         String refreshToken = jwtUtil.generateRefreshToken(userDetails);
 
-        return TokenResponseDto.builder()
+        return TokenResponseDTO.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .accessTokenExpiresIn(accessTokenExpiration)

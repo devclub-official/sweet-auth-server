@@ -1,7 +1,8 @@
-package com.ptpt.authservice.handler;
+package com.ptpt.authservice.exception.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ptpt.authservice.controller.response.CustomApiResponse;
+import com.ptpt.authservice.enums.ApiResponseCode;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -30,12 +31,7 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
 
-        CustomApiResponse<Void> apiResponse = CustomApiResponse.<Void>builder()
-                .success(false)
-                .code("FORBIDDEN")
-                .message("이 리소스에 대한 접근 권한이 없습니다.")
-                .data(null)
-                .build();
+        CustomApiResponse<Void> apiResponse = CustomApiResponse.of(ApiResponseCode.AUTH_FORBIDDEN, null);
 
         objectMapper.writeValue(response.getWriter(), apiResponse);
     }
