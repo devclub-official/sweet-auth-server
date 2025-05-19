@@ -9,6 +9,7 @@ import com.ptpt.authservice.domain.User;
 import com.ptpt.authservice.enums.ApiResponseCode;
 import com.ptpt.authservice.service.UserService;
 import com.ptpt.authservice.swagger.SwaggerErrorResponseDTO;
+import com.ptpt.authservice.swagger.UserControllerDocs;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -25,38 +26,17 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+//https://infinitecode.tistory.com/65
+//인터페이스로 스웨거 관련 어노테이션 가독성 향상 방법
 @Slf4j
 @RestController
 @Tag(name = "사용자 API", description = "사용자 등록, 정보 조회 및 수정 API")
 @RequestMapping("/api")
 @RequiredArgsConstructor
-public class UserController {
+public class UserController implements UserControllerDocs {
 
     private final UserService userService;
 
-    @Operation(
-            summary = "사용자 등록 API",
-            description = "새로운 사용자를 등록합니다.",
-            tags = {"사용자 API"}
-    )
-    @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "사용자 등록 성공",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = CustomApiResponse.class)
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "사용자 등록 실패",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = SwaggerErrorResponseDTO.class)
-                    )
-            )
-    })
     @PostMapping("/users")
     public ResponseEntity<CustomApiResponse<UserResponseDTO>> createNewUser(@RequestBody EncryptedUserRequestBody requestBody) {
         try {
