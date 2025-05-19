@@ -7,11 +7,11 @@ import com.ptpt.authservice.controller.response.UserResponseDTO;
 import com.ptpt.authservice.controller.response.CustomApiResponse;
 import com.ptpt.authservice.domain.User;
 import com.ptpt.authservice.service.UserService;
+import com.ptpt.authservice.swagger.SwaggerErrorResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.media.SchemaProperty;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -52,7 +52,7 @@ public class UserController {
                     description = "사용자 등록 실패",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = CustomApiResponse.class)
+                            schema = @Schema(implementation = SwaggerErrorResponseDTO.class)
                     )
             )
     })
@@ -108,7 +108,7 @@ public class UserController {
                     description = "사용자 정보 수정 실패",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = CustomApiResponse.class)
+                            schema = @Schema(implementation = SwaggerErrorResponseDTO.class)
                     )
             ),
             @ApiResponse(
@@ -116,7 +116,7 @@ public class UserController {
                     description = "인증 실패",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = CustomApiResponse.class)
+                            schema = @Schema(implementation = SwaggerErrorResponseDTO.class)
                     )
             )
     })
@@ -199,7 +199,7 @@ public class UserController {
                     description = "사용자 정보 조회 실패",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = CustomApiResponse.class)
+                            schema = @Schema(implementation = SwaggerErrorResponseDTO.class)
                     )
             ),
             @ApiResponse(
@@ -207,7 +207,7 @@ public class UserController {
                     description = "인증 실패",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = CustomApiResponse.class)
+                            schema = @Schema(implementation = SwaggerErrorResponseDTO.class)
                     )
             )
     })

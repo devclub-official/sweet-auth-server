@@ -29,6 +29,6 @@ public class SwaggerConfig {
         return new Info()
                 .title("PTPT Auth API")
                 .description("피티피티 앱의 인증 서버 API 입니다.")
-                .version("1.0");
+                .version("1.0.0");
     }
 }

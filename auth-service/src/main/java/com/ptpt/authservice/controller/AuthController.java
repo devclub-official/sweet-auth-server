@@ -7,6 +7,7 @@ import com.ptpt.authservice.dto.response.TokenResponseDto;
 import com.ptpt.authservice.service.AuthService;
 import com.ptpt.authservice.service.JwtBlacklistService;
 import com.ptpt.authservice.service.UserService;
+import com.ptpt.authservice.swagger.SwaggerErrorResponseDTO;
 import com.ptpt.authservice.util.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -55,7 +56,7 @@ public class AuthController {
                     description = "로그인 실패",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = CustomApiResponse.class)
+                            schema = @Schema(implementation = SwaggerErrorResponseDTO.class)
                     )
             )
     })
@@ -103,7 +104,7 @@ public class AuthController {
                     description = "토큰 갱신 실패",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = CustomApiResponse.class)
+                            schema = @Schema(implementation = SwaggerErrorResponseDTO.class)
                     )
             )
     })

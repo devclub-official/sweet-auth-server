@@ -1,5 +1,6 @@
 package com.ptpt.authservice.controller.response;
 
+import com.ptpt.authservice.enums.ApiResponseCode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,4 +21,24 @@ public class CustomApiResponse<T> {
 
     @Schema(description = "응답 데이터", nullable = true)
     T data;
+
+    // ApiResponseCode Enum을 활용한 응답 생성 정적 메서드
+    public static <T> CustomApiResponse<T> of(ApiResponseCode responseCode, T data) {
+        return CustomApiResponse.<T>builder()
+                .success(responseCode.isSuccess())
+                .code(responseCode.getCode())
+                .message(responseCode.getDefaultMessage())
+                .data(data)
+                .build();
+    }
+
+    // 메시지 커스터마이징을 위한 정적 메서드
+    public static <T> CustomApiResponse<T> of(ApiResponseCode  responseCode, String customMessage, T data) {
+        return CustomApiResponse.<T>builder()
+                .success(responseCode.isSuccess())
+                .code(responseCode.getCode())
+                .message(customMessage)
+                .data(data)
+                .build();
+    }
 }
