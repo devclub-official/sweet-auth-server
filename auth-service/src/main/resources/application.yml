@@ -37,6 +37,10 @@ logging:
     com:
       ptpt: trace
 
+springdoc:
+  swagger-ui:
+    server-url: https://porpoise-musical-orca.ngrok-free.app
+
 #springdoc:
 #  swagger-ui:
 #    path: /swagger-ui.html
