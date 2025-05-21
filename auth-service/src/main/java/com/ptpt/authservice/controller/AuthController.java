@@ -18,12 +18,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @Tag(name = "인증 API", description = "로그인 및 토큰 관리 API")
 @RequestMapping("/auth")
@@ -65,6 +67,25 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<CustomApiResponse<TokenResponseDTO>> login(@RequestBody LoginRequest loginRequest) {
         try {
+
+// https://ohju.tistory.com/405
+// 나는 로그를 그냥 쓰기만 했는데 올바른 로그 사용법이 따로 있었다.
+//
+// log.info("data={}", name)
+// 이런 식으로 사용하면 된다고 한다.
+//
+// log.info("data=" + name)
+// 내가 팀 프로젝트할 때 이렇게 사용한 것 같은데 이건 비추천하는 방식이라고 한다.
+// 왜냐하면 연산이 이루어지기 때문에 자원 낭비가 발생한다고 한다. 때문에 가능하면 위와 같은 방식으로 사용해야 할 것 같다.
+
+//            로그레벨 순서
+//            TRACE < DEBUG < INFO < WARN < ERROR < FATAL
+//            log.info("{}", "log info 톄스트입니다.");
+//            log.debug("{}", "log debug 톄스트입니다.");
+//            log.warn("{}", "log warn 톄스트입니다.");
+//            log.error("{}", "log error 톄스트입니다.");
+//            log.trace("{}", "log trace 톄스트입니다.");
+
             TokenResponseDTO tokenResponseDto = authService.authenticateUser(loginRequest);
 
             return ResponseEntity.ok(CustomApiResponse.of(ApiResponseCode.AUTH_LOGIN_SUCCESS, tokenResponseDto));

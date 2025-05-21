@@ -139,7 +139,6 @@ public class JwtUtil {
         log.debug(token);
         log.debug(extractClaim(token, Claims::getSubject));
 
-        System.out.println(extractClaim(token, Claims::getSubject));
         return extractClaim(token, Claims::getSubject);
     }
 

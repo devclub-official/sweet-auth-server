@@ -16,7 +16,7 @@ public class SwaggerErrorResponseDTO<T> {
     @Schema(description = "응답 메시지", example = "예외 메시지 전송 or 커스텀 메시지")
     String message;
 
-    @Schema(description = "응답 데이터", defaultValue = "null")
+    @Schema(description = "응답 데이터", example = "null", defaultValue = "null")
     T data;
 
 }

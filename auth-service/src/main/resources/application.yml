@@ -31,9 +31,11 @@ file:
   upload-dir: src/main/resources/static/images/profiles
   access-path: /images/profiles
 
-#logging:
-#  level:
-#    root: debug
+logging:
+  level:
+#    root: info
+    com:
+      ptpt: trace
 
 #springdoc:
 #  swagger-ui:

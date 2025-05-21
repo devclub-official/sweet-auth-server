@@ -56,6 +56,7 @@ public class SecurityConfig {
         );
 
         http.authorizeHttpRequests(c -> {
+            c.requestMatchers("/kakao-login").permitAll();
             c.requestMatchers("/swagger-ui/**").permitAll(); // swagger 관련 endpoint 허용
 //            c.requestMatchers("/static/**").permitAll();
             c.requestMatchers("/v3/api-docs/**").permitAll();

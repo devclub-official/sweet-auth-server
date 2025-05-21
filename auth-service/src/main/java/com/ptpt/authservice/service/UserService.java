@@ -84,9 +84,7 @@ public class UserService {
             String userIdStr = userId.toString();
 
             // 사용자 ID를 기반으로 하위 디렉토리 구조 생성
-            String dirPath = userIdStr;
-
-            Path userPath = Paths.get(uploadDir, dirPath);
+            Path userPath = Paths.get(uploadDir, userIdStr);
             if (!Files.exists(userPath)) {
                 Files.createDirectories(userPath);
             }
