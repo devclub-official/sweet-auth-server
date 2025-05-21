@@ -17,11 +17,14 @@ import java.util.List;
 public class User implements UserDetails {
 
     private Long id;
+
     private String email;
 
     @JsonIgnore
     private String password;
+
     private String username;
+
     private String profileImage;
 
 
@@ -51,6 +54,7 @@ public class User implements UserDetails {
         return UserEntity.builder()
                 .id(id)
                 .username(username)
+                .password(password)
                 .email(email)
                 .build();
     }

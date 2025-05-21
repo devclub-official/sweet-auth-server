@@ -40,10 +40,10 @@ public class UserService {
 
         return authRepository.createNewUser(
                 User.builder()
-                        .email(email)
-                        .password(password)
-                        .username(username)
-                        .build()
+                    .email(email)
+                    .password(password)
+                    .username(username)
+                    .build()
         );
     }
 
