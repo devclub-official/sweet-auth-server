@@ -1,7 +1,7 @@
 package com.ptpt.authservice.repository.auth;
 
 import com.ptpt.authservice.controller.request.UserUpdateRequestBody;
-import com.ptpt.authservice.domain.User;
+import com.ptpt.authservice.dto.User;
 import com.ptpt.authservice.entity.user.UserEntity;
 import com.ptpt.authservice.exception.InvalidAuthException;
 import com.ptpt.authservice.repository.user.UserJpaRepository;
@@ -62,7 +62,7 @@ public class AuthRepository {
 
             // 업데이트할 필드만 변경
             if (updateRequestBody.getUsername() != null && !updateRequestBody.getUsername().isEmpty()) {
-                userEntity.setUsername(updateRequestBody.getUsername());
+                userEntity.setNickname(updateRequestBody.getUsername());
             }
 
             if (updateRequestBody.getProfileImage() != null) {

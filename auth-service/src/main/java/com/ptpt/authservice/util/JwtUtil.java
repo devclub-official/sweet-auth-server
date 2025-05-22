@@ -1,5 +1,7 @@
 package com.ptpt.authservice.util;
 
+import com.ptpt.authservice.dto.TempUserInfoDTO;
+import com.ptpt.authservice.dto.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -60,6 +62,9 @@ public class JwtUtil {
 
     @Value("${jwt.refresh-token-expiration}")
     private long refreshTokenExpiration; // 밀리초 단위, 예: 604800000 (7일)
+
+    @Value("${jwt.temp-token-expiration:1800000}") // 30분
+    private long tempTokenExpiration;
 
 
     public String generateAccessToken(Authentication authentication) {
@@ -154,6 +159,40 @@ public class JwtUtil {
             extractAllClaims(token); // 예외 발생 시 false
             return true;
         } catch (JwtException | IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    public String generateTempToken(TempUserInfoDTO tempUserInfo) {
+        return Jwts.builder()
+                .setSubject("TEMP_USER")
+                .claim("email", tempUserInfo.getEmail())
+                .claim("socialId", tempUserInfo.getSocialId())
+                .claim("socialType", tempUserInfo.getSocialType().name())
+                .claim("nickname", tempUserInfo.getNickname())
+                .claim("profileImageUrl", tempUserInfo.getProfileImageUrl())
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + tempTokenExpiration))
+                .signWith(SignatureAlgorithm.HS256, secretKey.getBytes(StandardCharsets.UTF_8))
+                .compact();
+    }
+
+    public TempUserInfoDTO extractTempUserInfo(String tempToken) {
+        Claims claims = extractAllClaims(tempToken);
+        return TempUserInfoDTO.builder()
+                .email(claims.get("email", String.class))
+                .socialId(claims.get("socialId", String.class))
+                .socialType(User.SocialType.valueOf(claims.get("socialType", String.class)))
+                .nickname(claims.get("nickname", String.class))
+                .profileImageUrl(claims.get("profileImageUrl", String.class))
+                .build();
+    }
+
+    public boolean isTempToken(String token) {
+        try {
+            Claims claims = extractAllClaims(token);
+            return "TEMP_USER".equals(claims.getSubject());
+        } catch (Exception e) {
             return false;
         }
     }

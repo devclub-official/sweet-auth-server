@@ -1,9 +1,10 @@
 package com.ptpt.authservice.service;
 
 import com.ptpt.authservice.controller.request.UserUpdateRequestBody;
-import com.ptpt.authservice.domain.User;
+import com.ptpt.authservice.dto.User;
 import com.ptpt.authservice.repository.auth.AuthRepository;
 import com.ptpt.authservice.repository.user.UserJpaRepository;
+import com.ptpt.authservice.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -24,8 +26,7 @@ import java.util.UUID;
 public class UserService {
 
     private final AuthRepository authRepository;
-    private final UserJpaRepository userJpaRepository;
-    private final EncryptService encryptService;
+    private final UserRepository userRepository;
 
     @Value("${file.upload-dir}")
     private String uploadDir;
@@ -33,24 +34,42 @@ public class UserService {
     @Value("${file.access-path}")
     private String accessPath;
 
-    public User createNewUser(String email, String password, String username) {
-        if (userJpaRepository.findUserEntityByEmail(email).isPresent()) {
-            throw new RuntimeException("이미 등록된 이메일입니다.");
+    public User createNewUser(String email, String password, String nickname) {
+        // 중복 확인
+        if (userRepository.existsByEmail(email)) {
+            throw new IllegalArgumentException("이미 존재하는 이메일입니다");
+        }
+        if (userRepository.existsByNickname(nickname)) {
+            throw new IllegalArgumentException("이미 존재하는 닉네임입니다");
         }
 
-        return authRepository.createNewUser(
-                User.builder()
-                    .email(email)
-                    .password(password)
-                    .username(username)
-                    .build()
-        );
+        User newUser = User.createNormalUser(email, nickname, password);
+
+        return userRepository.save(newUser);
+    }
+
+    // 소셜 사용자 생성
+    public User createSocialUser(String email, String nickname, String socialId,
+                                 User.SocialType socialType, String profileImageUrl, String phoneNumber) {
+        // 중복 확인
+        if (userRepository.existsByEmail(email)) {
+            // 이미 소셜 로그인으로 가입된 사용자인지 확인
+            Optional<User> existingUser = userRepository.findBySocialInfo(socialId, socialType);
+            if (existingUser.isPresent()) {
+                return existingUser.get(); // 이미 존재하는 소셜 사용자
+            }
+            throw new IllegalArgumentException("다른 방식으로 가입된 이메일입니다");
+        }
+
+        User newUser = User.createSocialUser(email, nickname, socialId, socialType, profileImageUrl, phoneNumber);
+        return userRepository.save(newUser);
     }
 
     @Transactional
     // 사용자 정보 업데이트 메서드 추가
     public User updateUserInfo(String email, UserUpdateRequestBody updateRequestBody, MultipartFile profileImage) {
         // 이메일로 사용자 존재 여부 확인
+        User user = getUserByEmail(email);
 
         Long userId = authRepository.getUserByUserId(email).getId();
 
@@ -115,6 +134,17 @@ public class UserService {
      */
     @Transactional(readOnly = true)
     public User getUserByEmail(String email) {
-        return authRepository.getUserByUserId(email);
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다"));
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<User> findBySocialInfo(String socialId, User.SocialType socialType) {
+        return userRepository.findBySocialInfo(socialId, socialType);
     }
 }

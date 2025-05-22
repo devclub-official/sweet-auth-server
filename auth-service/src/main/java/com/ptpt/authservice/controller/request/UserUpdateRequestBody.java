@@ -21,4 +21,8 @@ public class UserUpdateRequestBody {
 
     @Schema(description = "프로필 이미지 경로", example = "/images/profiles/1/profile.jpg")
     private String profileImage;
+
+    private String bio;
+
+    private String phoneNumber;
 }

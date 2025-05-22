@@ -62,9 +62,9 @@ public class SecurityConfig {
         );
 
         http.authorizeHttpRequests(c -> {
-            c.requestMatchers("/kakao-login").permitAll();
+            c.requestMatchers("/social/**").permitAll();
             c.requestMatchers("/swagger-ui/**").permitAll(); // swagger 관련 endpoint 허용
-//            c.requestMatchers("/static/**").permitAll();
+            c.requestMatchers("/img/**", "/css/**", "/js/**").permitAll(); // 정적 리소스 허용
             c.requestMatchers("/v3/api-docs/**").permitAll();
             c.requestMatchers("/auth/**").permitAll();  // 인증 관련 엔드포인트 허용
             c.requestMatchers(HttpMethod.POST, "/api/users").permitAll();  // 회원가입만 허용

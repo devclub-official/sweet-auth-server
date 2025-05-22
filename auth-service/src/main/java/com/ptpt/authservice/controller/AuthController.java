@@ -1,5 +1,6 @@
 package com.ptpt.authservice.controller;
 
+import com.ptpt.authservice.controller.request.CompleteSignupRequest;
 import com.ptpt.authservice.controller.request.LoginRequest;
 import com.ptpt.authservice.controller.request.RefreshTokenRequest;
 import com.ptpt.authservice.controller.response.CustomApiResponse;
@@ -20,10 +21,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
@@ -35,12 +33,6 @@ public class AuthController {
     private final AuthService authService;
     private final UserService userService;
     private final JwtBlacklistService jwtBlacklistService;
-
-//    @PostMapping("/users")
-//    public String auth(@RequestBody SimpleUserRequestBody requestBody) {
-//        return userService.auth(requestBody.getEmail(), requestBody.getPassword());
-//    }
-
 
     @Operation(
             summary = "로그인 API",
@@ -148,6 +140,47 @@ public class AuthController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(
                     CustomApiResponse.of(ApiResponseCode.AUTH_REFRESH_FAILED, e.getMessage(), null));
+        }
+    }
+
+    @Operation(
+            summary = "소셜 회원가입 완료 API",
+            description = "임시 토큰을 사용하여 소셜 회원가입을 완료합니다."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "회원가입 완료 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = SwaggerAuthResponseDTO.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "회원가입 완료 실패",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = SwaggerErrorResponseDTO.class)
+                    )
+            )
+    })
+    @PostMapping("/social/signup/complete")
+    public ResponseEntity<CustomApiResponse<TokenResponseDTO>> completeSocialSignup(
+            @RequestHeader("Authorization") String tempToken,
+            @RequestBody CompleteSignupRequest request) {
+        try {
+            // "Bearer " 제거
+            String token = tempToken.replace("Bearer ", "");
+            log.info("소셜 회원가입 완료 요청 - nickname={}", request.getNickname());
+
+            TokenResponseDTO tokens = authService.completeSocialSignup(token, request);
+
+            return ResponseEntity.ok(CustomApiResponse.of(ApiResponseCode.USER_CREATE_SUCCESS, tokens));
+        } catch (Exception e) {
+            log.error("소셜 회원가입 완료 중 오류 발생", e);
+            return ResponseEntity.badRequest().body(
+                    CustomApiResponse.of(ApiResponseCode.USER_CREATE_FAILED, e.getMessage(), null));
         }
     }
 

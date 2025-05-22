@@ -1,6 +1,6 @@
 package com.ptpt.authservice.service;
 
-import com.ptpt.authservice.domain.User;
+import com.ptpt.authservice.dto.User;
 import com.ptpt.authservice.entity.user.UserEntity;
 import com.ptpt.authservice.repository.user.UserJpaRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +24,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .id(userEntity.getId())
                 .email(userEntity.getEmail())
                 .password(userEntity.getPassword())
-                .username(userEntity.getUsername())
+                .nickname(userEntity.getNickname())
                 .profileImage(userEntity.getProfileImage())
                 .build();
     }

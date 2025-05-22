@@ -5,7 +5,7 @@ import com.ptpt.authservice.controller.request.EncryptedUserRequestBody;
 import com.ptpt.authservice.controller.request.UserUpdateRequestBody;
 import com.ptpt.authservice.controller.response.UserResponseDTO;
 import com.ptpt.authservice.controller.response.CustomApiResponse;
-import com.ptpt.authservice.domain.User;
+import com.ptpt.authservice.dto.User;
 import com.ptpt.authservice.enums.ApiResponseCode;
 import com.ptpt.authservice.service.UserService;
 import com.ptpt.authservice.swagger.SwaggerErrorResponseDTO;
