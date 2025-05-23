@@ -17,6 +17,12 @@ spring:
     open-in-view: false
     database: mysql
     show-sql: true
+  sql:
+    init:
+      mode: always
+      data-locations: classpath:sql/data.sql
+      schema-locations: classpath:sql/schema.sql
+
 
   servlet:
     multipart:
@@ -39,7 +45,7 @@ logging:
 
 springdoc:
   swagger-ui:
-    server-url: https://porpoise-musical-orca.ngrok-free.app
+    server-url: https://wholly-climbing-gnat.ngrok-free.app
 
 #springdoc:
 #  swagger-ui:

@@ -2,6 +2,8 @@
 -- 통합 스키마 방식: 일반 사용자와 소셜 사용자를 하나의 테이블에서 관리
 -- 소셜 토큰은 저장하지 않고 로그인 완료 후 즉시 폐기
 
+DROP TABLE IF EXISTS users;
+
 CREATE TABLE users (
     -- 기본 식별자
    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '사용자 고유 ID',
@@ -52,35 +54,20 @@ CREATE TABLE users (
    INDEX idx_users_last_login (last_login_at) COMMENT '마지막 로그인 정렬 최적화',
 
     -- 제약 조건
-   CONSTRAINT chk_users_user_type CHECK (user_type IN ('NORMAL', 'SOCIAL')),
-   CONSTRAINT chk_users_social_type CHECK (social_type IS NULL OR social_type IN ('KAKAO', 'GOOGLE', 'NAVER')),
-   CONSTRAINT chk_users_password_required CHECK (
-       (user_type = 'NORMAL' AND password IS NOT NULL) OR
-       (user_type = 'SOCIAL' AND password IS NULL)
-       ),
-   CONSTRAINT chk_users_social_info_required CHECK (
-       (user_type = 'NORMAL' AND social_id IS NULL AND social_type IS NULL) OR
-       (user_type = 'SOCIAL' AND social_id IS NOT NULL AND social_type IS NOT NULL)
-       ),
+--    CONSTRAINT chk_users_user_type CHECK (user_type IN ('NORMAL', 'SOCIAL')),
+--    CONSTRAINT chk_users_social_type CHECK (social_type IS NULL OR social_type IN ('KAKAO', 'GOOGLE', 'NAVER')),
+--    CONSTRAINT chk_users_password_required CHECK (
+--        (user_type = 'NORMAL' AND password IS NOT NULL) OR
+--        (user_type = 'SOCIAL' AND password IS NULL)
+--        ),
+--    CONSTRAINT chk_users_social_info_required CHECK (
+--        (user_type = 'NORMAL' AND social_id IS NULL AND social_type IS NULL) OR
+--        (user_type = 'SOCIAL' AND social_id IS NOT NULL AND social_type IS NOT NULL)
+--        ),
 
     -- 소셜 계정 중복 방지 (같은 소셜 플랫폼의 같은 ID는 하나만 존재)
    UNIQUE KEY uk_users_social_account (social_id, social_type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='사용자 정보 통합 테이블';
-
--- 초기 데이터 삽입 (선택사항)
--- 테스트용 일반 사용자 (비밀번호: "password123")
-INSERT INTO users (
-    email, nickname, password, user_type,
-    is_email_verified, agree_terms, agree_privacy
-) VALUES (
- 'test@example.com',
- 'TestUser',
- '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', -- bcrypt 해시된 "password123"
- 'NORMAL',
- TRUE,
- TRUE,
- TRUE
-);
 
 -- 데이터 무결성을 위한 추가 체크사항들을 주석으로 설명
 /*

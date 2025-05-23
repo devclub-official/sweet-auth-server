@@ -56,8 +56,8 @@ public class SocialCallbackController {
                     - 이 API는 일반적으로 프론트엔드에서 직접 호출하지 않습니다
                     - 카카오 로그인 후 자동 리다이렉트되는 URL입니다
                     - 인증 코드는 일회성이며 짧은 시간 내에 사용해야 합니다
-                    """,
-            tags = {"소셜 로그인 콜백 API"}
+                    """
+            // tags = {"소셜 로그인 콜백 API"}
     )
     @ApiResponses(value = {
             @ApiResponse(
