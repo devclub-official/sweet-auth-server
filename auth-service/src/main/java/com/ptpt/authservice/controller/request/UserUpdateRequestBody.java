@@ -17,7 +17,7 @@ public class UserUpdateRequestBody {
     private String password;
 
     @Schema(description = "사용자 닉네임", example = "example")
-    private String username;
+    private String nickname;
 
     @Schema(description = "프로필 이미지 경로", example = "/images/profiles/1/profile.jpg")
     private String profileImage;

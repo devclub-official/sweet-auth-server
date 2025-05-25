@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class TempUserInfoDTO {
+public class TempUserInfo {
     private String email;
     private String socialId;
     private User.SocialType socialType;

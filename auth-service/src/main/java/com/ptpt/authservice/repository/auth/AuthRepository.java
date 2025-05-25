@@ -61,8 +61,8 @@ public class AuthRepository {
                     .orElseThrow(InvalidAuthException::new);
 
             // 업데이트할 필드만 변경
-            if (updateRequestBody.getUsername() != null && !updateRequestBody.getUsername().isEmpty()) {
-                userEntity.setNickname(updateRequestBody.getUsername());
+            if (updateRequestBody.getNickname() != null && !updateRequestBody.getNickname().isEmpty()) {
+                userEntity.setNickname(updateRequestBody.getNickname());
             }
 
             if (updateRequestBody.getProfileImage() != null) {

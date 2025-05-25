@@ -30,6 +30,12 @@ public class User implements UserDetails {
     private String socialId;
     private SocialType socialType;
 
+    private Boolean enabled;
+    private Boolean emailVerified;
+    private LocalDateTime lastLoginAt;
+    private LocalDateTime passwordChangedAt;
+    private LocalDateTime deletedAt;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -117,5 +123,24 @@ public class User implements UserDetails {
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
+    }
+
+    public void updateUserInfo(String nickname, String phoneNumber, String profileImage) {
+        if (nickname != null) {
+            this.nickname = nickname;
+        }
+        if (phoneNumber != null) {
+            this.phoneNumber = phoneNumber;
+        }
+        if (profileImage != null) {
+            this.profileImage = profileImage;
+        }
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void changePassword(String newPassword) {
+        this.password = newPassword;
+        this.passwordChangedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 }

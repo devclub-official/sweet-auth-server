@@ -63,7 +63,5 @@ jwt:
   temp-token-expiration: 900000 # 15 min
 
 kakao:
-  client-id: a0feb4540c5e0ff6814660c1734c4cdd
-  redirect-uri: http://localhost:8081/social/callback/kakao
   kauth-token-url: https://kauth.kakao.com
   kauth-user-url: https://kapi.kakao.com

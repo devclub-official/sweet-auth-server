@@ -4,7 +4,7 @@ import com.ptpt.authservice.controller.request.CompleteSignupRequest;
 import com.ptpt.authservice.controller.request.LoginRequest;
 import com.ptpt.authservice.controller.request.RefreshTokenRequest;
 import com.ptpt.authservice.controller.response.CustomApiResponse;
-import com.ptpt.authservice.controller.response.TokenResponseDTO;
+import com.ptpt.authservice.controller.response.TokenResponse;
 import com.ptpt.authservice.enums.ApiResponseCode;
 import com.ptpt.authservice.service.AuthService;
 import com.ptpt.authservice.service.JwtBlacklistService;
@@ -57,7 +57,7 @@ public class AuthController {
             )
     })
     @PostMapping("/login")
-    public ResponseEntity<CustomApiResponse<TokenResponseDTO>> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<CustomApiResponse<TokenResponse>> login(@RequestBody LoginRequest loginRequest) {
         try {
 
 // https://ohju.tistory.com/405
@@ -78,9 +78,9 @@ public class AuthController {
 //            log.error("{}", "log error 톄스트입니다.");
 //            log.trace("{}", "log trace 톄스트입니다.");
 
-            TokenResponseDTO tokenResponseDto = authService.authenticateUser(loginRequest);
+            TokenResponse tokenResponse = authService.authenticateUser(loginRequest);
 
-            return ResponseEntity.ok(CustomApiResponse.of(ApiResponseCode.AUTH_LOGIN_SUCCESS, tokenResponseDto));
+            return ResponseEntity.ok(CustomApiResponse.of(ApiResponseCode.AUTH_LOGIN_SUCCESS, tokenResponse));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(
                     CustomApiResponse.of(ApiResponseCode.AUTH_LOGIN_FAILED, e.getMessage(), null));
@@ -111,7 +111,7 @@ public class AuthController {
             )
     })
     @PostMapping("/token/refresh")
-    public ResponseEntity<CustomApiResponse<TokenResponseDTO>> refreshToken(@RequestBody RefreshTokenRequest request) {
+    public ResponseEntity<CustomApiResponse<TokenResponse>> refreshToken(@RequestBody RefreshTokenRequest request) {
         try {
             String refreshToken = request.getRefreshToken();
 
@@ -134,9 +134,9 @@ public class AuthController {
 //            jwtBlacklistService.addToBlacklist(refreshToken);
 
             // 새로운 Access Token과 Refresh Token 발급
-            TokenResponseDTO tokenResponseDto = authService.refreshAccessToken(email);
+            TokenResponse tokenResponse = authService.refreshAccessToken(email);
 
-            return ResponseEntity.ok(CustomApiResponse.of(ApiResponseCode.AUTH_REFRESH_SUCCESS, tokenResponseDto));
+            return ResponseEntity.ok(CustomApiResponse.of(ApiResponseCode.AUTH_REFRESH_SUCCESS, tokenResponse));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(
                     CustomApiResponse.of(ApiResponseCode.AUTH_REFRESH_FAILED, e.getMessage(), null));
@@ -166,7 +166,7 @@ public class AuthController {
             )
     })
     @PostMapping("/social/signup/complete")
-    public ResponseEntity<CustomApiResponse<TokenResponseDTO>> completeSocialSignup(
+    public ResponseEntity<CustomApiResponse<TokenResponse>> completeSocialSignup(
             @RequestHeader("Authorization") String tempToken,
             @RequestBody CompleteSignupRequest request) {
         try {
@@ -174,7 +174,7 @@ public class AuthController {
             String token = tempToken.replace("Bearer ", "");
             log.info("소셜 회원가입 완료 요청 - nickname={}", request.getNickname());
 
-            TokenResponseDTO tokens = authService.completeSocialSignup(token, request);
+            TokenResponse tokens = authService.completeSocialSignup(token, request);
 
             return ResponseEntity.ok(CustomApiResponse.of(ApiResponseCode.USER_CREATE_SUCCESS, tokens));
         } catch (Exception e) {

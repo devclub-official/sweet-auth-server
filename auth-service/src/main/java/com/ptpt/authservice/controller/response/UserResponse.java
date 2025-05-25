@@ -6,7 +6,7 @@ import lombok.Getter;
 // 응답용 DTO 클래스 생성
 @Getter
 @Builder
-public class UserResponseDTO {
+public class UserResponse {
     private Long id;
     private String email;
     private String username;

@@ -2,149 +2,253 @@ package com.ptpt.authservice.service;
 
 import com.ptpt.authservice.controller.request.UserUpdateRequestBody;
 import com.ptpt.authservice.dto.User;
-import com.ptpt.authservice.repository.auth.AuthRepository;
-import com.ptpt.authservice.repository.user.UserJpaRepository;
+import com.ptpt.authservice.exception.AuthException;
+import com.ptpt.authservice.exception.DuplicateException;
+import com.ptpt.authservice.exception.UserNotFoundException;
 import com.ptpt.authservice.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.Optional;
-import java.util.UUID;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class UserService {
 
-    private final AuthRepository authRepository;
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final ProfileImageService profileImageService;
 
-    @Value("${file.upload-dir}")
-    private String uploadDir;
+    // ===== User Creation Methods =====
 
-    @Value("${file.access-path}")
-    private String accessPath;
+    /**
+     * 일반 사용자 생성
+     */
+    @Transactional
+    public User createNormalUser(String email, String password, String nickname) {
+        // 입력값 검증
+        validateNewUserInput(email, nickname);
 
-    public User createNewUser(String email, String password, String nickname) {
-        // 중복 확인
-        if (userRepository.existsByEmail(email)) {
-            throw new IllegalArgumentException("이미 존재하는 이메일입니다");
-        }
-        if (userRepository.existsByNickname(nickname)) {
-            throw new IllegalArgumentException("이미 존재하는 닉네임입니다");
-        }
+        // 비밀번호 암호화
+        String encodedPassword = passwordEncoder.encode(password);
 
-        User newUser = User.createNormalUser(email, nickname, password);
+        // 사용자 생성
+        User newUser = User.createNormalUser(email, nickname, encodedPassword);
+        User savedUser = userRepository.save(newUser);
 
-        return userRepository.save(newUser);
+        log.info("일반 사용자 생성 완료 - userId: {}, email: {}", savedUser.getId(), email);
+        return savedUser;
     }
 
-    // 소셜 사용자 생성
+    /**
+     * 소셜 사용자 생성
+     */
+    @Transactional
     public User createSocialUser(String email, String nickname, String socialId,
                                  User.SocialType socialType, String profileImageUrl, String phoneNumber) {
-        // 중복 확인
-        if (userRepository.existsByEmail(email)) {
-            // 이미 소셜 로그인으로 가입된 사용자인지 확인
-            Optional<User> existingUser = userRepository.findBySocialInfo(socialId, socialType);
-            if (existingUser.isPresent()) {
-                return existingUser.get(); // 이미 존재하는 소셜 사용자
-            }
-            throw new IllegalArgumentException("다른 방식으로 가입된 이메일입니다");
-        }
+        // 입력값 검증
+        validateNewUserInput(email, nickname);
+        validateSocialUserInput(socialId, socialType);
 
-        User newUser = User.createSocialUser(email, nickname, socialId, socialType, profileImageUrl, phoneNumber);
-        return userRepository.save(newUser);
+        // 사용자 생성
+        User newUser = User.builder()
+                .email(email)
+                .nickname(nickname)
+                .phoneNumber(phoneNumber)
+                .profileImage(profileImageUrl)
+                .socialId(socialId)
+                .socialType(socialType)
+                .enabled(true)
+                .build();
+
+        User savedUser = userRepository.save(newUser);
+        log.info("소셜 사용자 생성 완료 - userId: {}, socialType: {}", savedUser.getId(), socialType);
+
+        return savedUser;
     }
 
+    // ===== User Update Methods =====
+
+    /**
+     * 사용자 정보 업데이트
+     */
     @Transactional
-    // 사용자 정보 업데이트 메서드 추가
-    public User updateUserInfo(String email, UserUpdateRequestBody updateRequestBody, MultipartFile profileImage) {
-        // 이메일로 사용자 존재 여부 확인
+    public User updateUserInfo(String email, UserUpdateRequestBody updateRequest, MultipartFile profileImage) {
+        log.info("사용자 정보 업데이트 요청 - email: {}", email);
+
+        // 사용자 조회
         User user = getUserByEmail(email);
 
-        Long userId = authRepository.getUserByUserId(email).getId();
+        // 닉네임 변경 시 중복 확인
+        if (updateRequest.getNickname() != null && !updateRequest.getNickname().equals(user.getNickname())) {
+            validateNicknameAvailable(updateRequest.getNickname());
+        }
 
-        // 프로필 이미지가 있는 경우 업로드 처리
+        // 프로필 이미지 처리
         if (profileImage != null && !profileImage.isEmpty()) {
-            String profileImagePath = saveProfileImage(userId, profileImage);
-            updateRequestBody.setProfileImage(profileImagePath);
+            String imageUrl = profileImageService.saveProfileImage(user.getId(), profileImage);
+            updateRequest.setProfileImage(imageUrl);
         }
 
         // 사용자 정보 업데이트
-        return authRepository.updateUser(email, updateRequestBody);
+        user.updateUserInfo(
+                updateRequest.getNickname(),
+                updateRequest.getPhoneNumber(),
+                updateRequest.getProfileImage()
+        );
+
+        return userRepository.save(user);
     }
 
     /**
-     * 프로필 이미지 저장 처리
+     * 비밀번호 변경
      */
-    private String saveProfileImage(Long userId, MultipartFile profileImage) {
-        try {
-            // 업로드 디렉토리 생성
-            Path uploadPath = Paths.get(uploadDir);
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
-            }
+    @Transactional
+    public void changePassword(String email, String currentPassword, String newPassword) {
+        User user = authenticateUser(email, currentPassword);
 
-            // 파일명 생성 (고유한 파일명을 위해 UUID 사용)
-            String originalFileName = profileImage.getOriginalFilename();
-            String fileExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
-            String fileName = UUID.randomUUID().toString() + fileExtension;
-
-            // 내부적으로 사용자 ID 기반 디렉토리 구조 생성 (URL에 노출되지 않음)
-            String userIdStr = userId.toString();
-
-            // 사용자 ID를 기반으로 하위 디렉토리 구조 생성
-            Path userPath = Paths.get(uploadDir, userIdStr);
-            if (!Files.exists(userPath)) {
-                Files.createDirectories(userPath);
-            }
-
-            // 파일 저장
-//            Path filePath = userPath.resolve(fileName);
-//            Files.copy(profileImage.getInputStream(), filePath);
-
-            // 파일 저장
-            Path filePath = userPath.resolve(fileName);
-            Files.copy(profileImage.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-
-            log.info("프로필 이미지 저장 완료 - 사용자: {}, 파일: {}", userId, fileName);
-
-            // URL에는 사용자 ID를 포함시키고 파일명도 함께 반환
-            return "/images/profiles/" + userIdStr + "/" + fileName;
-        } catch (IOException e) {
-            log.error("프로필 이미지 저장 실패", e);
-            throw new RuntimeException("프로필 이미지 저장 중 오류가 발생했습니다: " + e.getMessage());
-        } catch (Exception e) {
-            throw new RuntimeException("서버 에러: " + e.getMessage());
+        if (user.isSocialUser()) {
+            throw new AuthException("소셜 로그인 사용자는 비밀번호를 변경할 수 없습니다.");
         }
+
+        if (passwordEncoder.matches(newPassword, user.getPassword())) {
+            throw new AuthException("기존 비밀번호와 동일한 비밀번호로 변경할 수 없습니다.");
+        }
+
+        String encodedNewPassword = passwordEncoder.encode(newPassword);
+        user.changePassword(encodedNewPassword);
+
+        userRepository.save(user);
+        log.info("비밀번호 변경 완료 - userId: {}", user.getId());
     }
 
+    // ===== User Query Methods =====
 
     /**
-     * 이메일로 사용자 정보 조회
+     * 이메일로 사용자 조회
      */
-    @Transactional(readOnly = true)
     public User getUserByEmail(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다"));
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다. email: " + email));
     }
 
-    @Transactional(readOnly = true)
+    /**
+     * ID로 사용자 조회
+     */
+    public User getUserById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다. ID: " + userId));
+    }
+
+    /**
+     * 이메일로 사용자 조회 (Optional)
+     */
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
 
-    @Transactional(readOnly = true)
+    /**
+     * 소셜 정보로 사용자 조회
+     */
     public Optional<User> findBySocialInfo(String socialId, User.SocialType socialType) {
-        return userRepository.findBySocialInfo(socialId, socialType);
+        return userRepository.findBySocialIdAndSocialType(socialId, socialType);
+    }
+
+    /**
+     * 닉네임으로 사용자 조회
+     */
+    public Optional<User> findByNickname(String nickname) {
+        return userRepository.findByNickname(nickname);
+    }
+
+    // ===== Authentication Methods =====
+
+    /**
+     * 이메일과 비밀번호로 사용자 인증
+     */
+    public User authenticateUser(String email, String password) {
+        User user = getUserByEmail(email);
+
+        log.debug(
+                "UserService email {}", user.getEmail()
+        );
+
+        if (user.isSocialUser()) {
+            throw new BadCredentialsException("소셜 로그인 사용자입니다.");
+        }
+
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new BadCredentialsException("비밀번호가 올바르지 않습니다.");
+        }
+
+        if (!user.isEnabled()) {
+            throw new AuthException("비활성화된 계정입니다.");
+        }
+
+        return user;
+    }
+
+    // ===== Validation Methods =====
+
+    /**
+     * 이메일 중복 확인
+     */
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
+    /**
+     * 닉네임 중복 확인
+     */
+    public boolean existsByNickname(String nickname) {
+        return userRepository.existsByNickname(nickname);
+    }
+
+    /**
+     * 소셜 ID와 타입으로 존재 여부 확인
+     */
+    public boolean existsBySocialIdAndProvider(String socialId, String provider) {
+        User.SocialType socialType = User.SocialType.valueOf(provider.toUpperCase());
+        return userRepository.existsBySocialIdAndSocialType(socialId, socialType);
+    }
+
+    /**
+     * 소셜 정보로 사용자 ID 조회
+     */
+    public String findUserIdBySocialInfo(String socialId, String provider) {
+        User.SocialType socialType = User.SocialType.valueOf(provider.toUpperCase());
+        User user = userRepository.findBySocialIdAndSocialType(socialId, socialType)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+        return String.valueOf(user.getId());
+    }
+
+    // ===== Private Validation Methods =====
+
+    private void validateNewUserInput(String email, String nickname) {
+        if (userRepository.existsByEmail(email)) {
+            throw new DuplicateException("이미 존재하는 이메일입니다: " + email);
+        }
+        if (userRepository.existsByNickname(nickname)) {
+            throw new DuplicateException("이미 존재하는 닉네임입니다: " + nickname);
+        }
+    }
+
+    private void validateSocialUserInput(String socialId, User.SocialType socialType) {
+        if (userRepository.existsBySocialIdAndSocialType(socialId, socialType)) {
+            throw new DuplicateException("이미 가입된 소셜 계정입니다.");
+        }
+    }
+
+    private void validateNicknameAvailable(String nickname) {
+        if (userRepository.existsByNickname(nickname)) {
+            throw new DuplicateException("이미 존재하는 닉네임입니다: " + nickname);
+        }
     }
 }

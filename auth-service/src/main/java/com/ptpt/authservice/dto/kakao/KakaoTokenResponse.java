@@ -1,4 +1,4 @@
-package com.ptpt.authservice.dto;
+package com.ptpt.authservice.dto.kakao;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class KakaoTokenResponseDTO {
+public class KakaoTokenResponse {
 
     @JsonProperty("token_type")
     public String tokenType;

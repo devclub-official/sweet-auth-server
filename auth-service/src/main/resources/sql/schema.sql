@@ -33,9 +33,9 @@ CREATE TABLE users (
    is_email_verified BOOLEAN NOT NULL DEFAULT FALSE COMMENT '이메일 인증 상태',
 
     -- 개인정보 동의
-   agree_terms BOOLEAN NOT NULL DEFAULT FALSE COMMENT '서비스 이용약관 동의',
-   agree_privacy BOOLEAN NOT NULL DEFAULT FALSE COMMENT '개인정보처리방침 동의',
-   agree_marketing BOOLEAN NOT NULL DEFAULT FALSE COMMENT '마케팅 정보 수신 동의 (선택)',
+   agree_terms BOOLEAN NULL DEFAULT FALSE COMMENT '서비스 이용약관 동의',
+   agree_privacy BOOLEAN NULL DEFAULT FALSE COMMENT '개인정보처리방침 동의',
+   agree_marketing BOOLEAN NULL DEFAULT FALSE COMMENT '마케팅 정보 수신 동의 (선택)',
 
     -- 마지막 로그인 정보
    last_login_at TIMESTAMP NULL COMMENT '마지막 로그인 시간',

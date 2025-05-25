@@ -1,4 +1,4 @@
-package com.ptpt.authservice.dto;
+package com.ptpt.authservice.dto.kakao;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -11,7 +11,7 @@ import java.util.HashMap;
 @Getter
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class KakaoUserInfoResponseDTO {
+public class KakaoUserInfoResponse {
 
     //회원 번호
     @JsonProperty("id")
