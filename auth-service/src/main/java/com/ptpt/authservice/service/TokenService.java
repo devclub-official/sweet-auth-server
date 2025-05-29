@@ -3,15 +3,12 @@ package com.ptpt.authservice.service;
 import com.ptpt.authservice.controller.response.TokenResponse;
 import com.ptpt.authservice.dto.TempUserInfo;
 import com.ptpt.authservice.dto.User;
-import com.ptpt.authservice.exception.AuthException;
+import com.ptpt.authservice.exceptions.AuthException;
+import com.ptpt.authservice.exceptions.token.InvalidTokenException;
 import com.ptpt.authservice.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -75,7 +72,7 @@ public class TokenService {
      */
     public TempUserInfo validateAndExtractTempToken(String tempToken) {
         if (!jwtUtil.validateToken(tempToken) || !jwtUtil.isTempToken(tempToken)) {
-            throw new AuthException("유효하지 않은 임시 토큰입니다");
+            throw new InvalidTokenException("유효하지 않은 임시 토큰입니다.");
         }
 
         return jwtUtil.extractTempUserInfo(tempToken);

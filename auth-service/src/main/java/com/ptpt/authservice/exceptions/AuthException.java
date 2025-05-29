@@ -1,4 +1,4 @@
-package com.ptpt.authservice.exception;
+package com.ptpt.authservice.exceptions;
 
 public class AuthException extends RuntimeException {
     public AuthException(String message) {

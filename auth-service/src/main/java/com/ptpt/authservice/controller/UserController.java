@@ -7,6 +7,7 @@ import com.ptpt.authservice.controller.response.UserResponse;
 import com.ptpt.authservice.controller.response.CustomApiResponse;
 import com.ptpt.authservice.dto.User;
 import com.ptpt.authservice.enums.ApiResponseCode;
+import com.ptpt.authservice.exceptions.AuthServiceException;
 import com.ptpt.authservice.service.UserService;
 import com.ptpt.authservice.swagger.SwaggerErrorResponseDTO;
 import com.ptpt.authservice.swagger.UserControllerDocs;
@@ -39,21 +40,16 @@ public class UserController implements UserControllerDocs {
 
     @PostMapping("/users")
     public ResponseEntity<CustomApiResponse<UserResponse>> createNewUser(@RequestBody EncryptedUserRequestBody requestBody) {
-        try {
-            User newUser = userService.createNormalUser(requestBody.getEmail(), requestBody.getPassword(), requestBody.getUsername());
+        User newUser = userService.createNormalUser(requestBody.getEmail(), requestBody.getPassword(), requestBody.getUsername());
 
-            UserResponse responseData = UserResponse.builder()
-                    .id(newUser.getId())
-                    .email(newUser.getEmail())
-                    .username(newUser.getNickname())
-                    .profileImage(newUser.getProfileImage())
-                    .build();
+        UserResponse responseData = UserResponse.builder()
+                .id(newUser.getId())
+                .email(newUser.getEmail())
+                .username(newUser.getNickname())
+                .profileImage(newUser.getProfileImage())
+                .build();
 
-            return ResponseEntity.ok(CustomApiResponse.of(ApiResponseCode.USER_CREATE_SUCCESS, responseData));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(
-                    CustomApiResponse.of(ApiResponseCode.USER_CREATE_FAILED, e.getMessage(), null));
-        }
+        return ResponseEntity.ok(CustomApiResponse.of(ApiResponseCode.USER_CREATE_SUCCESS, responseData));
     }
 
     @Operation(
@@ -103,33 +99,33 @@ public class UserController implements UserControllerDocs {
         )
         @RequestPart(value = "profileImage", required = false) MultipartFile profileImage
     ) {
-        try {
-            UserUpdateRequestBody userUpdateRequestBody = null;
-            if (userInfoJson != null && !userInfoJson.isEmpty()) {
+
+        UserUpdateRequestBody userUpdateRequestBody = null;
+        if (userInfoJson != null && !userInfoJson.isEmpty()) {
+            try {
                 ObjectMapper objectMapper = new ObjectMapper();
                 userUpdateRequestBody = objectMapper.readValue(userInfoJson, UserUpdateRequestBody.class);
-            } else {
-                userUpdateRequestBody = new UserUpdateRequestBody();
+            } catch (Exception e) {
+                throw new AuthServiceException(ApiResponseCode.USER_UPDATE_FAILED, "잘못된 JSON 형식입니다.");
             }
-
-            log.info("프로필 이미지 요청: {}", profileImage != null ? profileImage.getOriginalFilename() : "없음");
-
-
-            // 사용자 정보 업데이트
-            User updatedUser = userService.updateUserInfo(userDetails.getEmail(), userUpdateRequestBody, profileImage);
-
-            UserResponse responseData = UserResponse.builder()
-                    .id(updatedUser.getId())
-                    .email(updatedUser.getEmail())
-                    .username(updatedUser.getNickname())
-                    .profileImage(updatedUser.getProfileImage())
-                    .build();
-
-            return ResponseEntity.ok(CustomApiResponse.of(ApiResponseCode.USER_UPDATE_SUCCESS, responseData));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(
-                    CustomApiResponse.of(ApiResponseCode.USER_UPDATE_FAILED, e.getMessage(), null));
+        } else {
+            userUpdateRequestBody = new UserUpdateRequestBody();
         }
+
+        log.info("프로필 이미지 요청: {}", profileImage != null ? profileImage.getOriginalFilename() : "없음");
+
+
+        // 사용자 정보 업데이트
+        User updatedUser = userService.updateUserInfo(userDetails.getEmail(), userUpdateRequestBody, profileImage);
+
+        UserResponse responseData = UserResponse.builder()
+                .id(updatedUser.getId())
+                .email(updatedUser.getEmail())
+                .username(updatedUser.getNickname())
+                .profileImage(updatedUser.getProfileImage())
+                .build();
+
+        return ResponseEntity.ok(CustomApiResponse.of(ApiResponseCode.USER_UPDATE_SUCCESS, responseData));
     }
 
     @Operation(
@@ -166,21 +162,16 @@ public class UserController implements UserControllerDocs {
     })
     @GetMapping(value = "/users")
     public ResponseEntity<CustomApiResponse<UserResponse>> getUserInfo(@AuthenticationPrincipal User userDetails) {
-        try {
-            // 인증된 사용자의 정보를 가져옵니다
-            User user = userService.getUserByEmail(userDetails.getEmail());
+        // 인증된 사용자의 정보를 가져옵니다
+        User user = userService.getUserByEmail(userDetails.getEmail());
 
-            UserResponse responseData = UserResponse.builder()
-                    .id(user.getId())
-                    .email(user.getEmail())
-                    .username(user.getNickname())
-                    .profileImage(user.getProfileImage())
-                    .build();
+        UserResponse responseData = UserResponse.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .username(user.getNickname())
+                .profileImage(user.getProfileImage())
+                .build();
 
-            return ResponseEntity.ok(CustomApiResponse.of(ApiResponseCode.USER_READ_SUCCESS, responseData));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(
-                    CustomApiResponse.of(ApiResponseCode.USER_READ_FAILED, e.getMessage(), null));
-        }
+        return ResponseEntity.ok(CustomApiResponse.of(ApiResponseCode.USER_READ_SUCCESS, responseData));
     }
 }

@@ -2,13 +2,14 @@ package com.ptpt.authservice.service;
 
 import com.ptpt.authservice.controller.request.UserUpdateRequestBody;
 import com.ptpt.authservice.dto.User;
-import com.ptpt.authservice.exception.AuthException;
-import com.ptpt.authservice.exception.DuplicateException;
-import com.ptpt.authservice.exception.UserNotFoundException;
+import com.ptpt.authservice.enums.ApiResponseCode;
+import com.ptpt.authservice.exceptions.AuthServiceException;
+import com.ptpt.authservice.exceptions.DuplicateException;
+import com.ptpt.authservice.exceptions.user.UserNotFoundException;
+import com.ptpt.authservice.exceptions.user.UserCreateFailedException;
 import com.ptpt.authservice.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,18 +34,19 @@ public class UserService {
      */
     @Transactional
     public User createNormalUser(String email, String password, String nickname) {
-        // 입력값 검증
         validateNewUserInput(email, nickname);
 
-        // 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(password);
-
-        // 사용자 생성
         User newUser = User.createNormalUser(email, nickname, encodedPassword);
-        User savedUser = userRepository.save(newUser);
 
-        log.info("일반 사용자 생성 완료 - userId: {}, email: {}", savedUser.getId(), email);
-        return savedUser;
+        try {
+            User savedUser = userRepository.save(newUser);
+            log.info("일반 사용자 생성 완료 - userId: {}, email: {}", savedUser.getId(), email);
+            return savedUser;
+        } catch (Exception e) {
+            log.error("사용자 생성 중 오류 발생", e);
+            throw new UserCreateFailedException("사용자 생성 중 오류가 발생했습니다.");
+        }
     }
 
     /**
@@ -53,11 +55,9 @@ public class UserService {
     @Transactional
     public User createSocialUser(String email, String nickname, String socialId,
                                  User.SocialType socialType, String profileImageUrl, String phoneNumber) {
-        // 입력값 검증
         validateNewUserInput(email, nickname);
         validateSocialUserInput(socialId, socialType);
 
-        // 사용자 생성
         User newUser = User.builder()
                 .email(email)
                 .nickname(nickname)
@@ -68,10 +68,14 @@ public class UserService {
                 .enabled(true)
                 .build();
 
-        User savedUser = userRepository.save(newUser);
-        log.info("소셜 사용자 생성 완료 - userId: {}, socialType: {}", savedUser.getId(), socialType);
-
-        return savedUser;
+        try {
+            User savedUser = userRepository.save(newUser);
+            log.info("소셜 사용자 생성 완료 - userId: {}, socialType: {}", savedUser.getId(), socialType);
+            return savedUser;
+        } catch (Exception e) {
+            log.error("소셜 사용자 생성 중 오류 발생", e);
+            throw new UserCreateFailedException("소셜 사용자 생성 중 오류가 발생했습니다.");
+        }
     }
 
     // ===== User Update Methods =====
@@ -83,28 +87,33 @@ public class UserService {
     public User updateUserInfo(String email, UserUpdateRequestBody updateRequest, MultipartFile profileImage) {
         log.info("사용자 정보 업데이트 요청 - email: {}", email);
 
-        // 사용자 조회
         User user = getUserByEmail(email);
 
-        // 닉네임 변경 시 중복 확인
         if (updateRequest.getNickname() != null && !updateRequest.getNickname().equals(user.getNickname())) {
             validateNicknameAvailable(updateRequest.getNickname());
         }
 
-        // 프로필 이미지 처리
         if (profileImage != null && !profileImage.isEmpty()) {
-            String imageUrl = profileImageService.saveProfileImage(user.getId(), profileImage);
-            updateRequest.setProfileImage(imageUrl);
+            try {
+                String imageUrl = profileImageService.saveProfileImage(user.getId(), profileImage);
+                updateRequest.setProfileImage(imageUrl);
+            } catch (Exception e) {
+                log.error("프로필 이미지 저장 중 오류 발생", e);
+                throw new AuthServiceException(ApiResponseCode.USER_UPDATE_FAILED, "프로필 이미지 저장 중 오류가 발생했습니다.");
+            }
         }
 
-        // 사용자 정보 업데이트
-        user.updateUserInfo(
-                updateRequest.getNickname(),
-                updateRequest.getPhoneNumber(),
-                updateRequest.getProfileImage()
-        );
-
-        return userRepository.save(user);
+        try {
+            user.updateUserInfo(
+                    updateRequest.getNickname(),
+                    updateRequest.getPhoneNumber(),
+                    updateRequest.getProfileImage()
+            );
+            return userRepository.save(user);
+        } catch (Exception e) {
+            log.error("사용자 정보 업데이트 중 오류 발생", e);
+            throw new AuthServiceException(ApiResponseCode.USER_UPDATE_FAILED, "사용자 정보 업데이트 중 오류가 발생했습니다.");
+        }
     }
 
     /**
@@ -115,11 +124,11 @@ public class UserService {
         User user = authenticateUser(email, currentPassword);
 
         if (user.isSocialUser()) {
-            throw new AuthException("소셜 로그인 사용자는 비밀번호를 변경할 수 없습니다.");
+            throw new AuthServiceException(ApiResponseCode.AUTH_LOGIN_FAILED, "소셜 로그인 사용자는 비밀번호를 변경할 수 없습니다.");
         }
 
         if (passwordEncoder.matches(newPassword, user.getPassword())) {
-            throw new AuthException("기존 비밀번호와 동일한 비밀번호로 변경할 수 없습니다.");
+            throw new AuthServiceException(ApiResponseCode.AUTH_LOGIN_FAILED, "기존 비밀번호와 동일한 비밀번호로 변경할 수 없습니다.");
         }
 
         String encodedNewPassword = passwordEncoder.encode(newPassword);
@@ -176,20 +185,18 @@ public class UserService {
     public User authenticateUser(String email, String password) {
         User user = getUserByEmail(email);
 
-        log.debug(
-                "UserService email {}", user.getEmail()
-        );
+        log.debug("UserService email {}", user.getEmail());
 
         if (user.isSocialUser()) {
-            throw new BadCredentialsException("소셜 로그인 사용자입니다.");
+            throw new AuthServiceException(ApiResponseCode.AUTH_LOGIN_FAILED, "소셜 로그인 사용자입니다.");
         }
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new BadCredentialsException("비밀번호가 올바르지 않습니다.");
+            throw new AuthServiceException(ApiResponseCode.AUTH_LOGIN_FAILED, "비밀번호가 올바르지 않습니다.");
         }
 
         if (!user.isEnabled()) {
-            throw new AuthException("비활성화된 계정입니다.");
+            throw new AuthServiceException(ApiResponseCode.AUTH_LOGIN_FAILED, "비활성화된 계정입니다.");
         }
 
         return user;

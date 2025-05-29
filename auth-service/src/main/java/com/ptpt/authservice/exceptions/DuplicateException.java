@@ -1,4 +1,4 @@
-package com.ptpt.authservice.exception;
+package com.ptpt.authservice.exceptions;
 
 public class DuplicateException extends RuntimeException {
     public DuplicateException(String message) {

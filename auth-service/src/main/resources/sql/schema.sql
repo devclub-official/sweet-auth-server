@@ -2,7 +2,7 @@
 -- 통합 스키마 방식: 일반 사용자와 소셜 사용자를 하나의 테이블에서 관리
 -- 소셜 토큰은 저장하지 않고 로그인 완료 후 즉시 폐기
 
-DROP TABLE IF EXISTS users;
+-- DROP TABLE IF EXISTS users;
 
 CREATE TABLE users (
     -- 기본 식별자

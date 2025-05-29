@@ -2,7 +2,7 @@ package com.ptpt.authservice.repository.user;
 
 import com.ptpt.authservice.dto.User;
 import com.ptpt.authservice.entity.user.UserEntity;
-import com.ptpt.authservice.exception.UserNotFoundException;
+import com.ptpt.authservice.exceptions.user.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;

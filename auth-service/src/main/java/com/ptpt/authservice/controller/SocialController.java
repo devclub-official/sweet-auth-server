@@ -2,7 +2,7 @@ package com.ptpt.authservice.controller;
 //
 //import com.ptpt.authservice.controller.response.CustomApiResponse;
 //import com.ptpt.authservice.dto.kakao.KakaoUserInfoResponse;
-//import com.ptpt.authservice.dto.SocialLoginResponse;
+//import com.ptpt.authservice.controller.response.SocialLoginResponse;
 //import com.ptpt.authservice.enums.ApiResponseCode;
 //import com.ptpt.authservice.service.AuthService;
 //import com.ptpt.authservice.service.KakaoServiceBefore;
@@ -26,30 +26,34 @@ package com.ptpt.authservice.controller;
 //
 
 import com.ptpt.authservice.controller.request.AccessTokenRequest;
+import com.ptpt.authservice.controller.request.CompleteSignupRequest;
 import com.ptpt.authservice.controller.response.CustomApiResponse;
 import com.ptpt.authservice.controller.response.TokenResponse;
-import com.ptpt.authservice.controller.response.UserInfoResponse;
-import com.ptpt.authservice.dto.SocialLoginResponse;
+import com.ptpt.authservice.controller.response.SocialLoginResponse;
 import com.ptpt.authservice.dto.SocialUserInfo;
 import com.ptpt.authservice.dto.TempUserInfo;
 import com.ptpt.authservice.dto.User;
 import com.ptpt.authservice.enums.ApiResponseCode;
 import com.ptpt.authservice.enums.SocialProvider;
+import com.ptpt.authservice.enums.SocialSignupRequiredField;
 import com.ptpt.authservice.service.AuthService;
 import com.ptpt.authservice.service.SocialService;
 import com.ptpt.authservice.service.TokenService;
 import com.ptpt.authservice.service.UserService;
-import com.ptpt.authservice.service.impl.KakaoService;
+import com.ptpt.authservice.swagger.SwaggerAuthResponseDTO;
+import com.ptpt.authservice.swagger.SwaggerErrorResponseDTO;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 //// 카카오 로그인 구현: https://ddonghyeo.tistory.com/16
 //@Slf4j
@@ -281,47 +285,47 @@ public class SocialController {
 
     private final UserService userService;
     private final TokenService tokenService;
+    private final AuthService authService;
 
     @PostMapping("/login")
     public ResponseEntity<CustomApiResponse<?>> socialLogin(@RequestBody AccessTokenRequest request) {
-        try {
-            log.info("소셜 로그인 요청 - provider: {}", request.getProvider());
+        log.info("소셜 로그인 요청 - provider: {}", request.getProvider());
 
-            // 소셜 제공자 enum으로 변환
-            SocialProvider provider = SocialProvider.fromString(request.getProvider());
+        // 소셜 제공자 enum으로 변환
+        SocialProvider provider = SocialProvider.fromString(request.getProvider());
 
-            // 해당 제공자에 맞는 서비스 선택
-            SocialService service = getSocialService(provider);
+        // 해당 제공자에 맞는 서비스 선택
+        SocialService service = getSocialService(provider);
 
-            // 1. 소셜 플랫폼에서 사용자 정보 조회
-            SocialUserInfo socialUserInfo = service.getUserInfo(request.getAccessToken());
-            log.info("소셜 사용자 정보 조회 완료 - email: {}", socialUserInfo.getEmail());
+        // 1. 소셜 플랫폼에서 사용자 정보 조회
+        SocialUserInfo socialUserInfo = service.getUserInfo(request.getAccessToken());
+        log.info("소셜 사용자 정보 조회 완료 - email: {}", socialUserInfo.getEmail());
 
-            // 2. 기존 사용자 확인
-            Optional<User> existingUser = userService.findByEmail(socialUserInfo.getEmail());
+        // 2. 기존 사용자 확인
+        Optional<User> existingUser = userService.findByEmail(socialUserInfo.getEmail());
 
-            if (existingUser.isPresent()) {
-                // 3-1. 기존 사용자인 경우 - 토큰 발급
-                log.info("기존 사용자 로그인 - userId: {}", existingUser.get().getId());
+        if (existingUser.isPresent()) {
+            // 3-1. 기존 사용자인 경우 - 토큰 발급
+            log.info("기존 사용자 로그인 - userId: {}", existingUser.get().getId());
 
-                TokenResponse tokens = tokenService.generateTokens(existingUser.get());
+            TokenResponse tokens = tokenService.generateTokens(existingUser.get());
 
-                return ResponseEntity.ok(
-                        CustomApiResponse.of(ApiResponseCode.AUTH_SOCIAL_LOGIN_SUCCESS, "소셜 로그인이 성공적으로 완료되었습니다.", tokens)
-                );
+            return ResponseEntity.ok(
+                CustomApiResponse.of(ApiResponseCode.AUTH_SOCIAL_LOGIN_SUCCESS, "소셜 로그인이 성공적으로 완료되었습니다.", tokens)
+            );
 
-            } else {
-                // 3-2. 신규 사용자인 경우 - 추가 정보 입력 요청
-                log.info("신규 사용자 - 추가 정보 입력 필요");
+        } else {
+            // 3-2. 신규 사용자인 경우 - 추가 정보 입력 요청
+            log.info("신규 사용자 - 추가 정보 입력 필요");
 
-                //        // 신규 사용자 - 임시 토큰 발급
-                TempUserInfo tempUserInfo = TempUserInfo.builder()
-                        .email(socialUserInfo.getEmail())
-                        .socialId(socialUserInfo.getSocialId())
-                        .socialType(convertToSocialType(provider))
-                        .nickname(socialUserInfo.getNickname())
-                        .profileImageUrl(socialUserInfo.getProfileImageUrl())
-                        .build();
+            // 신규 사용자 - 임시 토큰 발급
+            TempUserInfo tempUserInfo = TempUserInfo.builder()
+                    .email(socialUserInfo.getEmail())
+                    .socialId(socialUserInfo.getSocialId())
+                    .socialType(convertToSocialType(provider))
+                    .nickname(socialUserInfo.getNickname())
+                    .profileImageUrl(socialUserInfo.getProfileImageUrl())
+                    .build();
 //
 //        String tempToken = jwtUtil.generateTempToken(tempUserInfo);
 //
@@ -332,66 +336,67 @@ public class SocialController {
 //                .requiredFields(Arrays.asList("phoneNumber", "agreeTerms"))
 //                .build();
 
-                // 임시 토큰 생성 (실제로는 더 안전한 방식으로 구현)
-                String tempToken = tokenService.generateTempToken(tempUserInfo);
+            // 임시 토큰 생성
+            String tempToken = tokenService.generateTempToken(tempUserInfo);
 
-                // 추가로 입력받을 필드들 정의
-                List<String> requiredFields = Arrays.asList("phoneNumber", "agreeTerms", "nickname");
+            // 추가로 입력받을 필드들 정의
+            // Enum을 사용하여 필수 필드 정의
+            List<String> requiredFields = SocialSignupRequiredField.getRequiredFields();
 
-                SocialLoginResponse response = SocialLoginResponse.builder()
+            // 필드 설명 맵 생성
+            Map<String, String> fieldDescriptions = Arrays.stream(SocialSignupRequiredField.values())
+                    .collect(Collectors.toMap(
+                            SocialSignupRequiredField::getFieldName,
+                            SocialSignupRequiredField::getDisplayName
+                    ));
+
+            SocialLoginResponse response = SocialLoginResponse.builder()
                     .status("SIGNUP_REQUIRED")
                     .tempToken(tempToken)
                     .tempUserInfo(tempUserInfo)
                     .requiredFields(requiredFields)
+                    .fieldDescriptions(fieldDescriptions)
                     .build();
 
-                ApiResponseCode responseCode = "LOGIN_SUCCESS".equals(response.getStatus())
-                        ? ApiResponseCode.AUTH_SOCIAL_LOGIN_SUCCESS
-                        : ApiResponseCode.AUTH_SOCIAL_SIGNUP_REQUIRED;
-
-                return ResponseEntity.ok(CustomApiResponse.of(responseCode, response));
-            }
-
-        } catch (IllegalArgumentException e) {
-            log.warn("소셜 로그인 파라미터 오류: {}", e.getMessage());
-            return ResponseEntity.badRequest().body(
-                    CustomApiResponse.of(ApiResponseCode.AUTH_SOCIAL_LOGIN_FAILED, "잘못된 요청입니다: " + e.getMessage())
-            );
-
-//        } catch (RuntimeException e) {
-//            log.error("소셜 플랫폼 API 통신 오류: {}", e.getMessage());
-//            return ResponseEntity.badRequest().body(
-//                    CustomApiResponse.of("E0117", "소셜 플랫폼과의 통신 중 오류가 발생했습니다.")
-//            );
-//
-//        } catch (Exception e) {
-//            log.error("소셜 로그인 처리 중 예상치 못한 오류 발생", e);
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-//                    CustomApiResponse.of("E0300", "서버 내부 오류가 발생했습니다.")
-//            );
+            return ResponseEntity.ok(CustomApiResponse.of(ApiResponseCode.AUTH_SOCIAL_SIGNUP_REQUIRED, response));
         }
     }
 
-    @PostMapping("/user-info")
-    public ResponseEntity<SocialUserInfo> getUserInfo(@RequestBody AccessTokenRequest request) {
-        try {
+    @Operation(
+            summary = "소셜 회원가입 완료 API",
+            description = "임시 토큰을 사용하여 소셜 회원가입을 완료합니다."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "회원가입 완료 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = SwaggerAuthResponseDTO.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "회원가입 완료 실패",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = SwaggerErrorResponseDTO.class)
+                    )
+            )
+    })
 
-            log.info("소셜 사용자 정보 요청 - provider: {}", request.getProvider());
+    @PostMapping("/signup/complete")
+    public ResponseEntity<CustomApiResponse<TokenResponse>> completeSocialSignup(
+            @RequestHeader("Authorization") String tempToken,
+            @RequestBody CompleteSignupRequest request) {
 
-            // 소셜 제공자 enum으로 변환
-            SocialProvider provider = SocialProvider.fromString(request.getProvider());
+        // "Bearer " 제거
+        String token = tempToken.replace("Bearer ", "");
+        log.info("소셜 회원가입 완료 요청 - nickname={}", request.getNickname());
 
-            // 해당 제공자에 맞는 서비스 선택
-            SocialService service = getSocialService(provider);
+        TokenResponse tokens = authService.completeSocialSignup(token, request);
 
-            SocialUserInfo userInfo = service.getUserInfo(request.getAccessToken());
-
-
-
-            return ResponseEntity.ok(userInfo);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+        return ResponseEntity.ok(CustomApiResponse.of(ApiResponseCode.USER_CREATE_SUCCESS, tokens));
     }
 
     /**

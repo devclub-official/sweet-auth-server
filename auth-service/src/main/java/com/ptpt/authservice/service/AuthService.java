@@ -4,15 +4,15 @@ import com.ptpt.authservice.controller.request.CompleteSignupRequest;
 import com.ptpt.authservice.controller.request.LoginRequest;
 import com.ptpt.authservice.controller.response.TokenResponse;
 import com.ptpt.authservice.dto.SocialUserInfo;
-import com.ptpt.authservice.dto.SocialLoginResponse;
+import com.ptpt.authservice.controller.response.SocialLoginResponse;
 import com.ptpt.authservice.dto.TempUserInfo;
 import com.ptpt.authservice.dto.User;
-import com.ptpt.authservice.exception.AuthException;
-import com.ptpt.authservice.exception.DuplicateException;
+import com.ptpt.authservice.exceptions.AuthException;
+import com.ptpt.authservice.exceptions.DuplicateException;
+import com.ptpt.authservice.exceptions.user.UserCreateFailedException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -72,13 +72,23 @@ public class AuthService {
     public TokenResponse completeSocialSignup(String tempToken, CompleteSignupRequest request) {
         log.info("소셜 회원가입 완료 요청");
 
-        // 1. 임시 토큰 검증 및 정보 추출
+        // 1. 요청 데이터 검증
+        try {
+            request.validateRequiredFields();
+        } catch (IllegalArgumentException e) {
+            throw new UserCreateFailedException(e.getMessage());
+        }
+
+        // 2. 임시 토큰 검증 및 정보 추출
         TempUserInfo tempUserInfo = tokenService.validateAndExtractTempToken(tempToken);
 
-        // 2. 닉네임 검증
+        // 3. 닉네임 검증
         String finalNickname = validateAndGetFinalNickname(tempUserInfo, request.getNickname());
 
-        // 3. 사용자 생성
+        // 4. 추가 필드 검증
+        validateAdditionalFields(request);
+
+        // 5. 사용자 생성
         User newUser = userService.createSocialUser(
                 tempUserInfo.getEmail(),
                 finalNickname,
@@ -90,6 +100,32 @@ public class AuthService {
 
         // 4. 토큰 발급
         return tokenService.generateTokens(newUser);
+    }
+
+    /**
+     * 추가 필드 검증
+     */
+    private void validateAdditionalFields(CompleteSignupRequest request) {
+        // 전화번호 형식 검증
+        if (request.getPhoneNumber() != null && !request.getPhoneNumber().isEmpty()) {
+            if (!isValidPhoneNumber(request.getPhoneNumber())) {
+                throw new UserCreateFailedException("올바르지 않은 전화번호 형식입니다.");
+            }
+        }
+
+        // Bio 길이 제한
+        if (request.getBio() != null && request.getBio().length() > 500) {
+            throw new UserCreateFailedException("자기소개는 500자를 초과할 수 없습니다.");
+        }
+    }
+
+    /**
+     * 전화번호 형식 검증
+     */
+    private boolean isValidPhoneNumber(String phoneNumber) {
+        // 간단한 한국 전화번호 형식 검증
+        String phoneRegex = "^01[0-9]-?[0-9]{3,4}-?[0-9]{4}$";
+        return phoneNumber.matches(phoneRegex);
     }
 
     /**

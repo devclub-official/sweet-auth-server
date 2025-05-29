@@ -2,13 +2,11 @@ package com.ptpt.authservice.util;
 
 import com.ptpt.authservice.dto.TempUserInfo;
 import com.ptpt.authservice.dto.User;
-import com.ptpt.authservice.exception.InvalidTokenException;
+import com.ptpt.authservice.exceptions.token.*;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -149,19 +147,19 @@ public class JwtUtil {
             return true;
         } catch (ExpiredJwtException e) {
             log.warn("만료된 JWT 토큰");
-            return false;
+            throw new ExpiredTokenException();
         } catch (UnsupportedJwtException e) {
             log.warn("지원하지 않는 JWT 토큰");
-            return false;
+            throw new UnsupportedTokenException();
         } catch (MalformedJwtException e) {
             log.warn("잘못된 형식의 JWT 토큰");
-            return false;
+            throw new MalformedTokenException();
         } catch (SignatureException e) {
             log.warn("잘못된 서명의 JWT 토큰");
-            return false;
-        } catch (IllegalArgumentException e) {
+            throw new InvalidSignatureTokenException();
+        } catch (JwtException e) {
             log.warn("잘못된 JWT 토큰");
-            return false;
+            throw new InvalidTokenException();
         }
     }
 
@@ -264,9 +262,15 @@ public class JwtUtil {
                     .parseClaimsJws(token)
                     .getBody();
         } catch (ExpiredJwtException e) {
-            throw new InvalidTokenException("만료된 토큰입니다.");
+            throw new ExpiredTokenException();
+        } catch (UnsupportedJwtException e) {
+            throw new UnsupportedTokenException();
+        } catch (MalformedJwtException e) {
+            throw new MalformedTokenException();
+        } catch (SignatureException e) {
+            throw new InvalidSignatureTokenException();
         } catch (JwtException e) {
-            throw new InvalidTokenException("유효하지 않은 토큰입니다.");
+            throw new InvalidTokenException();
         }
     }
 
@@ -278,7 +282,7 @@ public class JwtUtil {
             throw new InvalidTokenException("임시 토큰이 아닙니다.");
         }
         if (isTokenExpired(token)) {
-            throw new InvalidTokenException("만료된 임시 토큰입니다.");
+            throw new ExpiredTokenException("만료된 임시 토큰입니다.");
         }
     }
 }
