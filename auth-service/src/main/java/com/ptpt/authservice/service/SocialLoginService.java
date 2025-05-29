@@ -4,7 +4,7 @@ import com.ptpt.authservice.controller.response.SocialLoginResponse;
 import com.ptpt.authservice.dto.SocialUserInfo;
 import com.ptpt.authservice.dto.TempUserInfo;
 import com.ptpt.authservice.dto.User;
-import com.ptpt.authservice.exceptions.AuthException;
+import com.ptpt.authservice.exceptions.social.SocialEmailAlreadyExistsException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -77,7 +77,7 @@ public class SocialLoginService {
         Optional<User> existingEmailUser = userService.findByEmail(email);
 
         if (existingEmailUser.isPresent() && existingEmailUser.get().isNormalUser()) {
-            throw new AuthException("해당 이메일로 이미 일반 가입된 계정이 있습니다. 일반 로그인을 이용해 주세요.");
+            throw new SocialEmailAlreadyExistsException(email);
         }
     }
 

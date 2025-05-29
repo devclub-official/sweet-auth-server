@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ptpt.authservice.dto.SocialUserInfo;
 import com.ptpt.authservice.dto.apple.ApplePublicKey;
 import com.ptpt.authservice.dto.apple.ApplePublicKeys;
+import com.ptpt.authservice.exceptions.social.SocialPlatformException;
+import com.ptpt.authservice.exceptions.social.SocialTokenInvalidException;
 import com.ptpt.authservice.service.SocialService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -71,9 +73,12 @@ public class AppleService implements SocialService {
                     .provider("APPLE")
                     .build();
 
+        }  catch (SocialTokenInvalidException | SocialPlatformException e) {
+            // 이미 커스텀 예외인 경우 그대로 던짐
+            throw e;
         } catch (Exception e) {
             log.error("[ Apple Service ] 사용자 정보 조회 중 예외 발생", e);
-            throw new RuntimeException("Apple 사용자 정보 조회 중 오류 발생: " + e.getMessage());
+            throw new SocialPlatformException("Apple 사용자 정보 조회 중 예상치 못한 오류가 발생했습니다.");
         }
     }
 
@@ -87,19 +92,21 @@ public class AppleService implements SocialService {
                     .onStatus(HttpStatusCode::is4xxClientError,
                             clientResponse -> {
                                 log.error("Apple 공개키 조회 4xx 에러 발생: {}", clientResponse.statusCode());
-                                return Mono.error(new RuntimeException("Apple 공개키 조회 요청이 잘못되었습니다."));
+                                return Mono.error(new SocialPlatformException("Apple 공개키 조회 요청이 잘못되었습니다."));
                             })
                     .onStatus(HttpStatusCode::is5xxServerError,
                             clientResponse -> {
                                 log.error("Apple 공개키 조회 5xx 에러 발생: {}", clientResponse.statusCode());
-                                return Mono.error(new RuntimeException("Apple 서버 오류가 발생했습니다."));
+                                return Mono.error(new SocialPlatformException("Apple 서버에서 오류가 발생했습니다."));
                             })
                     .bodyToMono(ApplePublicKeys.class)
                     .block();
 
+        } catch (SocialPlatformException e) {
+            throw e;
         } catch (Exception e) {
             log.error("[ Apple Service ] 공개키 조회 중 예외 발생", e);
-            throw new RuntimeException("Apple 공개키 조회 중 오류 발생");
+            throw new SocialPlatformException("Apple 공개키 조회 중 예상치 못한 오류가 발생했습니다.");
         }
     }
 
@@ -110,7 +117,7 @@ public class AppleService implements SocialService {
             // JWT의 헤더에서 kid 추출
             String[] chunks = identityToken.split("\\.");
             if (chunks.length != 3) {
-                throw new RuntimeException("올바르지 않은 JWT 형식입니다.");
+                throw new SocialTokenInvalidException("올바르지 않은 JWT 형식입니다.");
             }
 
             String header = new String(Base64.getUrlDecoder().decode(chunks[0]));
@@ -124,7 +131,7 @@ public class AppleService implements SocialService {
             ApplePublicKey publicKey = publicKeys.getKeys().stream()
                     .filter(key -> key.getKid().equals(kid))
                     .findFirst()
-                    .orElseThrow(() -> new RuntimeException("일치하는 공개키를 찾을 수 없습니다. kid: " + kid));
+                    .orElseThrow(() -> new SocialTokenInvalidException("일치하는 공개키를 찾을 수 없습니다. kid: " + kid));
 
             log.info("[ Apple Service ] 공개키 매칭 완료 - kid: {}", kid);
 
@@ -143,9 +150,11 @@ public class AppleService implements SocialService {
 
             return claims;
 
+        }  catch (SocialTokenInvalidException e) {
+            throw e;
         } catch (Exception e) {
             log.error("[ Apple Service ] Identity token 검증 실패", e);
-            throw new RuntimeException("유효하지 않은 Apple identity token입니다: " + e.getMessage());
+            throw new SocialTokenInvalidException("유효하지 않은 Apple identity token입니다: " + e.getMessage());
         }
     }
 
@@ -153,24 +162,24 @@ public class AppleService implements SocialService {
         // iss 검증 (토큰 발급자)
         String iss = claims.getIssuer();
         if (!APPLE_ISS.equals(iss)) {
-            throw new RuntimeException("유효하지 않은 issuer입니다. expected: " + APPLE_ISS + ", actual: " + iss);
+            throw new SocialTokenInvalidException("유효하지 않은 issuer입니다. expected: " + APPLE_ISS + ", actual: " + iss);
         }
 
         // aud 검증 (클라이언트 ID 확인) - Apple은 단일 audience 사용
-//        Set<String> aud = claims.getAudience();
-//        if (aud == null || !CLIENT_ID.equals(aud)) {
-//            throw new RuntimeException("유효하지 않은 audience입니다. expected: " + CLIENT_ID + ", actual: " + aud);
-//        }
+        Set<String> aud = claims.getAudience();
+        if (aud == null || aud.isEmpty() || !aud.contains(CLIENT_ID)) {
+            throw new SocialTokenInvalidException("유효하지 않은 audience입니다. expected: " + CLIENT_ID + ", actual: " + aud);
+        }
 
         // exp 검증 (만료 시간) - JJWT 라이브러리가 자동으로 검증하지만 명시적으로 확인
         if (claims.getExpiration() != null && claims.getExpiration().getTime() < System.currentTimeMillis()) {
-            throw new RuntimeException("만료된 토큰입니다.");
+            throw new SocialTokenInvalidException("만료된 토큰입니다.");
         }
 
         // sub 검증 (사용자 식별자)
         String sub = claims.getSubject();
         if (sub == null || sub.trim().isEmpty()) {
-            throw new RuntimeException("유효하지 않은 사용자 식별자입니다.");
+            throw new SocialTokenInvalidException("유효하지 않은 사용자 식별자입니다.");
         }
 
 //        log.info("[ Apple Service ] Claims 검증 완료 - iss: {}, aud: {}, sub: {}", iss, aud, sub);

@@ -2,14 +2,18 @@ package com.ptpt.authservice.service;
 
 import com.ptpt.authservice.controller.request.CompleteSignupRequest;
 import com.ptpt.authservice.controller.request.LoginRequest;
+import com.ptpt.authservice.controller.response.SocialLoginResponse;
 import com.ptpt.authservice.controller.response.TokenResponse;
 import com.ptpt.authservice.dto.SocialUserInfo;
-import com.ptpt.authservice.controller.response.SocialLoginResponse;
 import com.ptpt.authservice.dto.TempUserInfo;
 import com.ptpt.authservice.dto.User;
-import com.ptpt.authservice.exceptions.AuthException;
-import com.ptpt.authservice.exceptions.DuplicateException;
+import com.ptpt.authservice.enums.ApiResponseCode;
+import com.ptpt.authservice.exceptions.AuthServiceException;
+import com.ptpt.authservice.exceptions.social.SocialLoginFailedException;
+import com.ptpt.authservice.exceptions.social.SocialPlatformException;
+import com.ptpt.authservice.exceptions.social.SocialTokenInvalidException;
 import com.ptpt.authservice.exceptions.user.UserCreateFailedException;
+import com.ptpt.authservice.exceptions.user.UserNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,7 +50,7 @@ public class AuthService {
         log.info("토큰 갱신 요청 - email: {}", email);
 
         User user = userService.findByEmail(email)
-                .orElseThrow(() -> new AuthException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UserNotFoundException("토큰 갱신을 위한 사용자를 찾을 수 없습니다: " + email));
 
         return tokenService.generateTokens(user);
     }
@@ -109,13 +113,13 @@ public class AuthService {
         // 전화번호 형식 검증
         if (request.getPhoneNumber() != null && !request.getPhoneNumber().isEmpty()) {
             if (!isValidPhoneNumber(request.getPhoneNumber())) {
-                throw new UserCreateFailedException("올바르지 않은 전화번호 형식입니다.");
+                throw new AuthServiceException(ApiResponseCode.USER_CREATE_FAILED, "올바르지 않은 전화번호 형식입니다.");
             }
         }
 
         // Bio 길이 제한
         if (request.getBio() != null && request.getBio().length() > 500) {
-            throw new UserCreateFailedException("자기소개는 500자를 초과할 수 없습니다.");
+            throw new AuthServiceException(ApiResponseCode.USER_CREATE_FAILED, "자기소개는 500자를 초과할 수 없습니다.");
         }
     }
 
@@ -136,14 +140,17 @@ public class AuthService {
         SocialService socialService = socialServices.get(serviceKey);
 
         if (socialService == null) {
-            throw new AuthException("지원하지 않는 소셜 플랫폼입니다: " + provider);
+            throw new SocialLoginFailedException("지원하지 않는 소셜 플랫폼입니다: " + provider);
         }
 
         try {
             return socialService.getUserInfo(accessToken);
+        } catch (SocialTokenInvalidException | SocialPlatformException e) {
+            // 이미 적절한 예외인 경우 그대로 던짐
+            throw e;
         } catch (Exception e) {
             log.error("소셜 사용자 정보 조회 실패 - provider: {}", provider, e);
-            throw new AuthException("소셜 플랫폼에서 사용자 정보를 가져올 수 없습니다.");
+            throw new SocialPlatformException("소셜 플랫폼에서 사용자 정보를 가져올 수 없습니다.");
         }
     }
 
@@ -153,9 +160,10 @@ public class AuthService {
     private String validateAndGetFinalNickname(TempUserInfo tempUserInfo, String requestedNickname) {
         String finalNickname = requestedNickname != null ? requestedNickname : tempUserInfo.getNickname();
 
+        // 기존 닉네임과 다른 경우에만 중복 검사
         if (!finalNickname.equals(tempUserInfo.getNickname())) {
             if (userService.existsByNickname(finalNickname)) {
-                throw new DuplicateException("이미 존재하는 닉네임입니다");
+                throw new UserCreateFailedException("이미 존재하는 닉네임입니다: " + finalNickname);
             }
         }
 

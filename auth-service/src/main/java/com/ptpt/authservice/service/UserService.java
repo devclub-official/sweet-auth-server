@@ -4,7 +4,7 @@ import com.ptpt.authservice.controller.request.UserUpdateRequestBody;
 import com.ptpt.authservice.dto.User;
 import com.ptpt.authservice.enums.ApiResponseCode;
 import com.ptpt.authservice.exceptions.AuthServiceException;
-import com.ptpt.authservice.exceptions.DuplicateException;
+import com.ptpt.authservice.exceptions.social.SocialEmailAlreadyExistsException;
 import com.ptpt.authservice.exceptions.user.UserNotFoundException;
 import com.ptpt.authservice.exceptions.user.UserCreateFailedException;
 import com.ptpt.authservice.repository.user.UserRepository;
@@ -240,22 +240,22 @@ public class UserService {
 
     private void validateNewUserInput(String email, String nickname) {
         if (userRepository.existsByEmail(email)) {
-            throw new DuplicateException("이미 존재하는 이메일입니다: " + email);
+            throw new SocialEmailAlreadyExistsException(email);
         }
         if (userRepository.existsByNickname(nickname)) {
-            throw new DuplicateException("이미 존재하는 닉네임입니다: " + nickname);
+            throw new UserCreateFailedException("이미 존재하는 닉네임입니다: " + nickname);
         }
     }
 
     private void validateSocialUserInput(String socialId, User.SocialType socialType) {
         if (userRepository.existsBySocialIdAndSocialType(socialId, socialType)) {
-            throw new DuplicateException("이미 가입된 소셜 계정입니다.");
+            throw new UserCreateFailedException("이미 가입된 소셜 계정입니다.");
         }
     }
 
     private void validateNicknameAvailable(String nickname) {
         if (userRepository.existsByNickname(nickname)) {
-            throw new DuplicateException("이미 존재하는 닉네임입니다: " + nickname);
+            throw new UserCreateFailedException("이미 존재하는 닉네임입니다: " + nickname);
         }
     }
 }

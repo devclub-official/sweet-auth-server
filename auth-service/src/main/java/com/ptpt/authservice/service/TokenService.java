@@ -3,7 +3,6 @@ package com.ptpt.authservice.service;
 import com.ptpt.authservice.controller.response.TokenResponse;
 import com.ptpt.authservice.dto.TempUserInfo;
 import com.ptpt.authservice.dto.User;
-import com.ptpt.authservice.exceptions.AuthException;
 import com.ptpt.authservice.exceptions.token.InvalidTokenException;
 import com.ptpt.authservice.util.JwtUtil;
 import lombok.RequiredArgsConstructor;

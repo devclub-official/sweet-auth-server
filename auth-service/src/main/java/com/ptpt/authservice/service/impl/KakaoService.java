@@ -2,6 +2,8 @@ package com.ptpt.authservice.service.impl;
 
 import com.ptpt.authservice.dto.SocialUserInfo;
 import com.ptpt.authservice.dto.kakao.KakaoUserInfoResponse;
+import com.ptpt.authservice.exceptions.social.SocialPlatformException;
+import com.ptpt.authservice.exceptions.social.SocialTokenInvalidException;
 import com.ptpt.authservice.service.SocialService;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import lombok.RequiredArgsConstructor;
@@ -53,13 +55,16 @@ public class KakaoService implements SocialService {
                     .retrieve()
                     .onStatus(HttpStatusCode::is4xxClientError,
                             clientResponse -> {
-                                log.error("4xx 에러 발생: {}", clientResponse.statusCode());
-                                return Mono.error(new RuntimeException("유효하지 않은 액세스 토큰입니다."));
+                                log.error("카카오 API 4xx 에러 발생: {}", clientResponse.statusCode());
+                                if (clientResponse.statusCode().value() == 401) {
+                                    return Mono.error(new SocialTokenInvalidException("유효하지 않은 카카오 액세스 토큰입니다."));
+                                }
+                                return Mono.error(new SocialPlatformException("카카오 API 요청이 잘못되었습니다."));
                             })
                     .onStatus(HttpStatusCode::is5xxServerError,
                             clientResponse -> {
                                 log.error("5xx 에러 발생: {}", clientResponse.statusCode());
-                                return Mono.error(new RuntimeException("카카오 서버 오류가 발생했습니다."));
+                                return Mono.error(new SocialPlatformException("카카오 서버에서 오류가 발생했습니다."));
                             })
                     .bodyToMono(KakaoUserInfoResponse.class)
                     .block();
@@ -69,9 +74,12 @@ public class KakaoService implements SocialService {
             log.info("[ Kakao Service ] NickName ---> {} ", userInfo.getKakaoAccount().getProfile().getNickName());
 
             return userInfo;
+        } catch (SocialTokenInvalidException | SocialPlatformException e) {
+            // 이미 커스텀 예외인 경우 그대로 던짐
+            throw e;
         } catch (Exception e) {
             log.error("[Kakao Service] 유저 정보 요청 중 예외 발생", e);
-            throw new RuntimeException("카카오 사용자 정보 조회 중 오류 발생");
+            throw new SocialPlatformException("카카오 사용자 정보 조회 중 예상치 못한 오류가 발생했습니다.");
         }
     }
 }

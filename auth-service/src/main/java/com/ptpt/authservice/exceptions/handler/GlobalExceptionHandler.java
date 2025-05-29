@@ -6,6 +6,8 @@ import com.ptpt.authservice.controller.UserController;
 import com.ptpt.authservice.controller.response.CustomApiResponse;
 import com.ptpt.authservice.enums.ApiResponseCode;
 import com.ptpt.authservice.exceptions.AuthServiceException;
+import com.ptpt.authservice.exceptions.social.SocialPlatformException;
+import com.ptpt.authservice.exceptions.social.SocialTokenInvalidException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -51,6 +53,26 @@ public class GlobalExceptionHandler {
         CustomApiResponse<Void> response = CustomApiResponse.of(responseCode, null);
 
         return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler({SocialTokenInvalidException.class, SocialPlatformException.class})
+    public ResponseEntity<CustomApiResponse<Void>> handleSocialException(AuthServiceException ex) {
+        CustomApiResponse<Void> response = CustomApiResponse.of(ex.getResponseCode(), null);
+
+        // 커스텀 메시지가 있는 경우 사용
+        if (!ex.getMessage().equals(ex.getResponseCode().getDefaultMessage())) {
+            response = CustomApiResponse.<Void>builder()
+                    .success(false)
+                    .code(ex.getResponseCode().getCode())
+                    .message(ex.getMessage())
+                    .data(null)
+                    .build();
+        }
+
+        HttpStatus status = ex.getResponseCode().getCode().equals("E0113") ?
+                HttpStatus.UNAUTHORIZED : HttpStatus.BAD_REQUEST;
+
+        return new ResponseEntity<>(response, status);
     }
 
     // 일반적인 예외 처리
