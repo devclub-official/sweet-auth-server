@@ -34,6 +34,7 @@ import com.ptpt.authservice.dto.SocialUserInfo;
 import com.ptpt.authservice.dto.TempUserInfo;
 import com.ptpt.authservice.dto.User;
 import com.ptpt.authservice.enums.ApiResponseCode;
+import com.ptpt.authservice.enums.SocialProvider;
 import com.ptpt.authservice.service.AuthService;
 import com.ptpt.authservice.service.SocialService;
 import com.ptpt.authservice.service.TokenService;
@@ -48,9 +49,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 //// 카카오 로그인 구현: https://ddonghyeo.tistory.com/16
 //@Slf4j
@@ -278,7 +277,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class SocialController {
 
-    private final KakaoService socialService;
+    private final Map<SocialProvider, SocialService> socialServices;
+
     private final UserService userService;
     private final TokenService tokenService;
 
@@ -287,8 +287,14 @@ public class SocialController {
         try {
             log.info("소셜 로그인 요청 - provider: {}", request.getProvider());
 
+            // 소셜 제공자 enum으로 변환
+            SocialProvider provider = SocialProvider.fromString(request.getProvider());
+
+            // 해당 제공자에 맞는 서비스 선택
+            SocialService service = getSocialService(provider);
+
             // 1. 소셜 플랫폼에서 사용자 정보 조회
-            SocialUserInfo socialUserInfo = socialService.getUserInfo(request.getAccessToken());
+            SocialUserInfo socialUserInfo = service.getUserInfo(request.getAccessToken());
             log.info("소셜 사용자 정보 조회 완료 - email: {}", socialUserInfo.getEmail());
 
             // 2. 기존 사용자 확인
@@ -312,7 +318,7 @@ public class SocialController {
                 TempUserInfo tempUserInfo = TempUserInfo.builder()
                         .email(socialUserInfo.getEmail())
                         .socialId(socialUserInfo.getSocialId())
-                        .socialType(User.SocialType.KAKAO)
+                        .socialType(convertToSocialType(provider))
                         .nickname(socialUserInfo.getNickname())
                         .profileImageUrl(socialUserInfo.getProfileImageUrl())
                         .build();
@@ -330,7 +336,7 @@ public class SocialController {
                 String tempToken = tokenService.generateTempToken(tempUserInfo);
 
                 // 추가로 입력받을 필드들 정의
-                java.util.List<String> requiredFields = Arrays.asList("phoneNumber", "agreeTerms", "nickname");
+                List<String> requiredFields = Arrays.asList("phoneNumber", "agreeTerms", "nickname");
 
                 SocialLoginResponse response = SocialLoginResponse.builder()
                     .status("SIGNUP_REQUIRED")
@@ -370,12 +376,16 @@ public class SocialController {
     public ResponseEntity<SocialUserInfo> getUserInfo(@RequestBody AccessTokenRequest request) {
         try {
 
-            log.info(request.getProvider());
-            log.info(request.getAccessToken());
+            log.info("소셜 사용자 정보 요청 - provider: {}", request.getProvider());
 
-            SocialUserInfo userInfo = socialService.getUserInfo(
-                    request.getAccessToken()
-            );
+            // 소셜 제공자 enum으로 변환
+            SocialProvider provider = SocialProvider.fromString(request.getProvider());
+
+            // 해당 제공자에 맞는 서비스 선택
+            SocialService service = getSocialService(provider);
+
+            SocialUserInfo userInfo = service.getUserInfo(request.getAccessToken());
+
 
 
             return ResponseEntity.ok(userInfo);
@@ -383,4 +393,28 @@ public class SocialController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
+
+    /**
+     * 소셜 제공자에 맞는 서비스 반환
+     */
+    private SocialService getSocialService(SocialProvider provider) {
+        SocialService service = socialServices.get(provider);
+        if (service == null) {
+            throw new IllegalArgumentException("지원하지 않는 소셜 로그인 제공자입니다: " + provider);
+        }
+        return service;
+    }
+
+    /**
+     * SocialProvider를 User.SocialType으로 변환
+     */
+    private User.SocialType convertToSocialType(SocialProvider provider) {
+        return switch (provider) {
+            case KAKAO -> User.SocialType.KAKAO;
+            case NAVER -> User.SocialType.NAVER;
+            case APPLE -> User.SocialType.APPLE;
+            case NONE -> null;
+        };
+    }
+
 }

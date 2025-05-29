@@ -65,3 +65,9 @@ jwt:
 kakao:
   kauth-token-url: https://kauth.kakao.com
   kauth-user-url: https://kapi.kakao.com
+
+apple:
+  client-id: com.sweet.ptpt
+  iss: https://appleid.apple.com
+  public-key-url: https://appleid.apple.com/auth/keys
+

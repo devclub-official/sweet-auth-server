@@ -41,7 +41,7 @@ public class User implements UserDetails {
 
     // 소셜 타입 열거형
     public enum SocialType {
-        KAKAO, GOOGLE, NAVER, NONE
+        KAKAO, GOOGLE, NAVER, APPLE, NONE
     }
 
     @Override
