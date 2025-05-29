@@ -1,9 +1,10 @@
 package com.ptpt.authservice.controller;
 
+import com.ptpt.authservice.controller.request.CompleteSignupRequest;
 import com.ptpt.authservice.controller.request.LoginRequest;
 import com.ptpt.authservice.controller.request.RefreshTokenRequest;
 import com.ptpt.authservice.controller.response.CustomApiResponse;
-import com.ptpt.authservice.controller.response.TokenResponseDTO;
+import com.ptpt.authservice.controller.response.TokenResponse;
 import com.ptpt.authservice.enums.ApiResponseCode;
 import com.ptpt.authservice.service.AuthService;
 import com.ptpt.authservice.service.JwtBlacklistService;
@@ -20,10 +21,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
@@ -35,12 +33,6 @@ public class AuthController {
     private final AuthService authService;
     private final UserService userService;
     private final JwtBlacklistService jwtBlacklistService;
-
-//    @PostMapping("/users")
-//    public String auth(@RequestBody SimpleUserRequestBody requestBody) {
-//        return userService.auth(requestBody.getEmail(), requestBody.getPassword());
-//    }
-
 
     @Operation(
             summary = "로그인 API",
@@ -65,7 +57,7 @@ public class AuthController {
             )
     })
     @PostMapping("/login")
-    public ResponseEntity<CustomApiResponse<TokenResponseDTO>> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<CustomApiResponse<TokenResponse>> login(@RequestBody LoginRequest loginRequest) {
         try {
 
 // https://ohju.tistory.com/405
@@ -86,9 +78,9 @@ public class AuthController {
 //            log.error("{}", "log error 톄스트입니다.");
 //            log.trace("{}", "log trace 톄스트입니다.");
 
-            TokenResponseDTO tokenResponseDto = authService.authenticateUser(loginRequest);
+            TokenResponse tokenResponse = authService.authenticateUser(loginRequest);
 
-            return ResponseEntity.ok(CustomApiResponse.of(ApiResponseCode.AUTH_LOGIN_SUCCESS, tokenResponseDto));
+            return ResponseEntity.ok(CustomApiResponse.of(ApiResponseCode.AUTH_LOGIN_SUCCESS, tokenResponse));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(
                     CustomApiResponse.of(ApiResponseCode.AUTH_LOGIN_FAILED, e.getMessage(), null));
@@ -119,7 +111,7 @@ public class AuthController {
             )
     })
     @PostMapping("/token/refresh")
-    public ResponseEntity<CustomApiResponse<TokenResponseDTO>> refreshToken(@RequestBody RefreshTokenRequest request) {
+    public ResponseEntity<CustomApiResponse<TokenResponse>> refreshToken(@RequestBody RefreshTokenRequest request) {
         try {
             String refreshToken = request.getRefreshToken();
 
@@ -142,12 +134,53 @@ public class AuthController {
 //            jwtBlacklistService.addToBlacklist(refreshToken);
 
             // 새로운 Access Token과 Refresh Token 발급
-            TokenResponseDTO tokenResponseDto = authService.refreshAccessToken(email);
+            TokenResponse tokenResponse = authService.refreshAccessToken(email);
 
-            return ResponseEntity.ok(CustomApiResponse.of(ApiResponseCode.AUTH_REFRESH_SUCCESS, tokenResponseDto));
+            return ResponseEntity.ok(CustomApiResponse.of(ApiResponseCode.AUTH_REFRESH_SUCCESS, tokenResponse));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(
                     CustomApiResponse.of(ApiResponseCode.AUTH_REFRESH_FAILED, e.getMessage(), null));
+        }
+    }
+
+    @Operation(
+            summary = "소셜 회원가입 완료 API",
+            description = "임시 토큰을 사용하여 소셜 회원가입을 완료합니다."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "회원가입 완료 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = SwaggerAuthResponseDTO.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "회원가입 완료 실패",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = SwaggerErrorResponseDTO.class)
+                    )
+            )
+    })
+    @PostMapping("/social/signup/complete")
+    public ResponseEntity<CustomApiResponse<TokenResponse>> completeSocialSignup(
+            @RequestHeader("Authorization") String tempToken,
+            @RequestBody CompleteSignupRequest request) {
+        try {
+            // "Bearer " 제거
+            String token = tempToken.replace("Bearer ", "");
+            log.info("소셜 회원가입 완료 요청 - nickname={}", request.getNickname());
+
+            TokenResponse tokens = authService.completeSocialSignup(token, request);
+
+            return ResponseEntity.ok(CustomApiResponse.of(ApiResponseCode.USER_CREATE_SUCCESS, tokens));
+        } catch (Exception e) {
+            log.error("소셜 회원가입 완료 중 오류 발생", e);
+            return ResponseEntity.badRequest().body(
+                    CustomApiResponse.of(ApiResponseCode.USER_CREATE_FAILED, e.getMessage(), null));
         }
     }
 

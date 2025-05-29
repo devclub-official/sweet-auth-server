@@ -23,8 +23,8 @@ public class CustomApiResponse<T> {
         description = "응답 데이터",
         nullable = true,
         anyOf = {
-        UserResponseDTO.class,
-        TokenResponseDTO.class
+        UserResponse.class,
+        TokenResponse.class
     },
             example = "{\"id\":1,\"username\":\"홍길동\",\"email\":\"user@example.com\",\"profileImage\":\"profile.jpg\"}"
     )

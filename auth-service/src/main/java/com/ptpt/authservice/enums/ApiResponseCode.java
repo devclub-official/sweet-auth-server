@@ -32,6 +32,25 @@ public enum ApiResponseCode {
     USER_UPDATE_SUCCESS("S0205", "사용자 정보가 성공적으로 업데이트되었습니다."),
     USER_DELETE_SUCCESS("S0206", "사용자가 성공적으로 삭제되었습니다."),
 
+    // 소셜 로그인 관련
+    // 소셜 로그인 관련 성공 코드
+    AUTH_SOCIAL_LOGIN_SUCCESS("S0111", "소셜 로그인이 성공적으로 완료되었습니다."),
+    AUTH_SOCIAL_SIGNUP_REQUIRED("S0112", "소셜 회원가입을 위한 추가 정보 입력이 필요합니다."),
+    AUTH_SOCIAL_SIGNUP_COMPLETE("S0113", "소셜 회원가입이 성공적으로 완료되었습니다."),
+    AUTH_SOCIAL_ACCOUNT_LINK_SUCCESS("S0114", "소셜 계정 연결이 성공적으로 완료되었습니다."),
+    AUTH_SOCIAL_ACCOUNT_UNLINK_SUCCESS("S0115", "소셜 계정 연결 해제가 성공적으로 완료되었습니다."),
+
+    // 소셜 로그인 관련 실패 코드
+    AUTH_SOCIAL_LOGIN_FAILED("E0111", "소셜 로그인에 실패했습니다."),
+    AUTH_SOCIAL_SIGNUP_FAILED("E0112", "소셜 회원가입에 실패했습니다."),
+    AUTH_SOCIAL_TOKEN_INVALID("E0113", "유효하지 않은 소셜 토큰입니다."),
+    AUTH_SOCIAL_ACCOUNT_ALREADY_LINKED("E0114", "이미 연결된 소셜 계정입니다."),
+    AUTH_SOCIAL_ACCOUNT_NOT_FOUND("E0115", "연결된 소셜 계정을 찾을 수 없습니다."),
+    AUTH_SOCIAL_EMAIL_ALREADY_EXISTS("E0116", "해당 이메일로 이미 가입된 계정이 있습니다."),
+    AUTH_SOCIAL_PLATFORM_ERROR("E0117", "소셜 플랫폼과의 통신 중 오류가 발생했습니다."),
+    AUTH_SOCIAL_TEMP_TOKEN_EXPIRED("E0118", "임시 토큰이 만료되었습니다."),
+    AUTH_SOCIAL_TEMP_TOKEN_INVALID("E0119", "유효하지 않은 임시 토큰입니다."),
+
     // 사용자 관련 실패 코드
     USER_CREATE_FAILED("E0203", "사용자 생성에 실패했습니다."),
     USER_READ_FAILED("E0204", "사용자 정보 조회에 실패했습니다."),

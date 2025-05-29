@@ -2,7 +2,7 @@ package com.ptpt.authservice.swagger;
 
 import com.ptpt.authservice.controller.request.EncryptedUserRequestBody;
 import com.ptpt.authservice.controller.response.CustomApiResponse;
-import com.ptpt.authservice.controller.response.UserResponseDTO;
+import com.ptpt.authservice.controller.response.UserResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -36,5 +36,5 @@ public interface UserControllerDocs {
                     )
             )
     })
-    ResponseEntity<CustomApiResponse<UserResponseDTO>> createNewUser(@RequestBody EncryptedUserRequestBody requestBody);
+    ResponseEntity<CustomApiResponse<UserResponse>> createNewUser(@RequestBody EncryptedUserRequestBody requestBody);
 }

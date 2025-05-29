@@ -3,9 +3,9 @@ package com.ptpt.authservice.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ptpt.authservice.controller.request.EncryptedUserRequestBody;
 import com.ptpt.authservice.controller.request.UserUpdateRequestBody;
-import com.ptpt.authservice.controller.response.UserResponseDTO;
+import com.ptpt.authservice.controller.response.UserResponse;
 import com.ptpt.authservice.controller.response.CustomApiResponse;
-import com.ptpt.authservice.domain.User;
+import com.ptpt.authservice.dto.User;
 import com.ptpt.authservice.enums.ApiResponseCode;
 import com.ptpt.authservice.service.UserService;
 import com.ptpt.authservice.swagger.SwaggerErrorResponseDTO;
@@ -38,11 +38,11 @@ public class UserController implements UserControllerDocs {
     private final UserService userService;
 
     @PostMapping("/users")
-    public ResponseEntity<CustomApiResponse<UserResponseDTO>> createNewUser(@RequestBody EncryptedUserRequestBody requestBody) {
+    public ResponseEntity<CustomApiResponse<UserResponse>> createNewUser(@RequestBody EncryptedUserRequestBody requestBody) {
         try {
-            User newUser = userService.createNewUser(requestBody.getEmail(), requestBody.getPassword(), requestBody.getUsername());
+            User newUser = userService.createNormalUser(requestBody.getEmail(), requestBody.getPassword(), requestBody.getUsername());
 
-            UserResponseDTO responseData = UserResponseDTO.builder()
+            UserResponse responseData = UserResponse.builder()
                     .id(newUser.getId())
                     .email(newUser.getEmail())
                     .username(newUser.getNickname())
@@ -89,7 +89,7 @@ public class UserController implements UserControllerDocs {
             )
     })
     @PatchMapping(value = "/users", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ResponseEntity<CustomApiResponse<UserResponseDTO>> updateUser(
+    public ResponseEntity<CustomApiResponse<UserResponse>> updateUser(
         @AuthenticationPrincipal User userDetails,
         @Parameter(
                 description = "사용자 정보를 담은 JSON 문자열 (예: {\"username\":\"홍길동\"})",
@@ -118,7 +118,7 @@ public class UserController implements UserControllerDocs {
             // 사용자 정보 업데이트
             User updatedUser = userService.updateUserInfo(userDetails.getEmail(), userUpdateRequestBody, profileImage);
 
-            UserResponseDTO responseData = UserResponseDTO.builder()
+            UserResponse responseData = UserResponse.builder()
                     .id(updatedUser.getId())
                     .email(updatedUser.getEmail())
                     .username(updatedUser.getNickname())
@@ -165,12 +165,12 @@ public class UserController implements UserControllerDocs {
             )
     })
     @GetMapping(value = "/users")
-    public ResponseEntity<CustomApiResponse<UserResponseDTO>> getUserInfo(@AuthenticationPrincipal User userDetails) {
+    public ResponseEntity<CustomApiResponse<UserResponse>> getUserInfo(@AuthenticationPrincipal User userDetails) {
         try {
             // 인증된 사용자의 정보를 가져옵니다
             User user = userService.getUserByEmail(userDetails.getEmail());
 
-            UserResponseDTO responseData = UserResponseDTO.builder()
+            UserResponse responseData = UserResponse.builder()
                     .id(user.getId())
                     .email(user.getEmail())
                     .username(user.getNickname())

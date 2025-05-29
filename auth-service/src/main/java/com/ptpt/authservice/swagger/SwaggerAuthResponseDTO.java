@@ -1,6 +1,6 @@
 package com.ptpt.authservice.swagger;
 
-import com.ptpt.authservice.controller.response.TokenResponseDTO;
+import com.ptpt.authservice.controller.response.TokenResponse;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,5 +22,5 @@ public class SwaggerAuthResponseDTO {
     private String message;
 
     @Schema(description = "응답 데이터")
-    private TokenResponseDTO data;
+    private TokenResponse data;
 }
