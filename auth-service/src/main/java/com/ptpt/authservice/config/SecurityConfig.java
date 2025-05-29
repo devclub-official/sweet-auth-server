@@ -53,10 +53,15 @@ public class SecurityConfig {
         );
 
         http.authorizeHttpRequests(c -> {
+            c.requestMatchers(
+                    "/swagger-ui/**",
+                    "/v3/api-docs/**",
+                    "/swagger-resources/**",
+                    "/webjars/**"
+            ).permitAll(); // swagger 관련 endpoint 허용
+
             c.requestMatchers("/social/**").permitAll();
-            c.requestMatchers("/swagger-ui/**").permitAll(); // swagger 관련 endpoint 허용
             c.requestMatchers("/img/**", "/css/**", "/js/**").permitAll(); // 정적 리소스 허용
-            c.requestMatchers("/v3/api-docs/**").permitAll();
             c.requestMatchers("/auth/**").permitAll();  // 인증 관련 엔드포인트 허용
             c.requestMatchers(HttpMethod.POST, "/api/users").permitAll();  // 회원가입만 허용
             c.anyRequest().authenticated();

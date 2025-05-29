@@ -20,11 +20,12 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 //@RestControllerAdvice(annotations = {RestController.class}, basePackages = {"com.ptpt.authservice.controller"})
 //출처: https://dev-meung.tistory.com/entry/해커톤-HY-THON-트러블슈팅-Swagger-500-에러-Failed-to-load-API-definition [IT::Coding:티스토리]
-@RestControllerAdvice(annotations = {RestController.class}, basePackageClasses = {
-        AuthController.class,
-        SocialController.class,
-        UserController.class
-})
+//@RestControllerAdvice(annotations = {RestController.class}, basePackageClasses = {
+//        AuthController.class,
+//        SocialController.class,
+//        UserController.class
+//})
+@RestControllerAdvice(basePackages = {"com.ptpt.authservice.controller"})
 public class GlobalExceptionHandler {
 
     // 커스텀 Auth 예외 처리 (Enum 기반)
