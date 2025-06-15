@@ -20,6 +20,11 @@ CREATE TABLE users (
    profile_image VARCHAR(500) NULL COMMENT '프로필 이미지 URL',
    phone_number VARCHAR(20) NULL COMMENT '전화번호',
 
+    -- 추가된 프로필 정보
+   birth_date DATE NULL COMMENT '생년월일',
+   location VARCHAR(100) NULL COMMENT '거주지 (시/도 단위)',
+   interested_sports TEXT NULL COMMENT '관심 스포츠 (JSON 배열 형태로 저장)',
+
     -- 소셜 로그인 정보 (일반 사용자는 NULL)
    social_id VARCHAR(100) NULL COMMENT '소셜 플랫폼 사용자 ID',
    social_type VARCHAR(20) NULL COMMENT '소셜 플랫폼 타입 (KAKAO, GOOGLE, NAVER)',

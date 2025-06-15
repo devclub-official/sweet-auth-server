@@ -311,7 +311,7 @@ public class SocialController {
             TokenResponse tokens = tokenService.generateTokens(existingUser.get());
 
             return ResponseEntity.ok(
-                CustomApiResponse.of(ApiResponseCode.AUTH_SOCIAL_LOGIN_SUCCESS, "소셜 로그인이 성공적으로 완료되었습니다.", tokens)
+                    CustomApiResponse.of(ApiResponseCode.AUTH_SOCIAL_LOGIN_SUCCESS, "소셜 로그인이 성공적으로 완료되었습니다.", tokens)
             );
 
         } else {
@@ -326,40 +326,61 @@ public class SocialController {
                     .nickname(socialUserInfo.getNickname())
                     .profileImageUrl(socialUserInfo.getProfileImageUrl())
                     .build();
-//
-//        String tempToken = jwtUtil.generateTempToken(tempUserInfo);
-//
-//        return SocialLoginResponse.builder()
-//                .status("SIGNUP_REQUIRED")
-//                .tempToken(tempToken)
-//                .tempUserInfo(tempUserInfo)
-//                .requiredFields(Arrays.asList("phoneNumber", "agreeTerms"))
-//                .build();
 
             // 임시 토큰 생성
             String tempToken = tokenService.generateTempToken(tempUserInfo);
 
             // 추가로 입력받을 필드들 정의
-            // Enum을 사용하여 필수 필드 정의
             List<String> requiredFields = SocialSignupRequiredField.getRequiredFields();
+            List<String> optionalFields = SocialSignupRequiredField.getOptionalFields();
 
-            // 필드 설명 맵 생성
-            Map<String, String> fieldDescriptions = Arrays.stream(SocialSignupRequiredField.values())
-                    .collect(Collectors.toMap(
-                            SocialSignupRequiredField::getFieldName,
-                            SocialSignupRequiredField::getDisplayName
-                    ));
+            // 필드 정보 리스트 생성
+            List<SocialSignupRequiredField.FieldInfo> fieldInfoList = SocialSignupRequiredField.getFieldInfoList();
+
+            // 관심 스포츠 옵션 제공
+            List<String> sportsOptions = getSportsOptions();
+
+            // 거주지 옵션 제공
+            List<String> locationOptions = getLocationOptions();
 
             SocialLoginResponse response = SocialLoginResponse.builder()
                     .status("SIGNUP_REQUIRED")
                     .tempToken(tempToken)
                     .tempUserInfo(tempUserInfo)
                     .requiredFields(requiredFields)
-                    .fieldDescriptions(fieldDescriptions)
+                    .optionalFields(optionalFields)
+                    .fieldInfoList(fieldInfoList)
+                    .sportsOptions(sportsOptions)
+                    .locationOptions(locationOptions)
                     .build();
 
-            return ResponseEntity.ok(CustomApiResponse.of(ApiResponseCode.AUTH_SOCIAL_SIGNUP_REQUIRED, response));
+            return ResponseEntity.ok(CustomApiResponse.of(ApiResponseCode.AUTH_SOCIAL_SIGNUP_REQUIRED,
+                    "소셜 회원가입을 위한 추가 정보 입력이 필요합니다.", response));
         }
+    }
+
+    /**
+     * 관심 스포츠 옵션 목록 반환
+     */
+    private List<String> getSportsOptions() {
+        return List.of(
+                "축구", "농구", "야구", "배구", "테니스", "탁구", "배드민턴", "골프",
+                "수영", "육상", "체조", "태권도", "유도", "복싱", "레슬링", "펜싱",
+                "양궁", "사격", "사이클", "스케이팅", "스키", "스노보드", "서핑", "요트",
+                "클라이밍", "볼링", "당구", "다트", "E스포츠", "기타"
+        );
+    }
+
+    /**
+     * 거주지 옵션 목록 반환
+     */
+    private List<String> getLocationOptions() {
+        return List.of(
+                "서울특별시", "부산광역시", "대구광역시", "인천광역시", "광주광역시",
+                "대전광역시", "울산광역시", "세종특별자치시", "경기도", "강원특별자치도",
+                "충청북도", "충청남도", "전북특별자치도", "전라남도", "경상북도",
+                "경상남도", "제주특별자치도"
+        );
     }
 
     @Operation(

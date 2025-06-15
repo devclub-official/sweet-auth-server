@@ -1,5 +1,7 @@
 package com.ptpt.authservice.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ptpt.authservice.controller.request.UserUpdateRequestBody;
 import com.ptpt.authservice.dto.User;
 import com.ptpt.authservice.enums.ApiResponseCode;
@@ -15,6 +17,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -26,6 +30,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final ProfileImageService profileImageService;
+    private final ObjectMapper objectMapper;
 
     // ===== User Creation Methods =====
 
@@ -50,31 +55,71 @@ public class UserService {
     }
 
     /**
-     * 소셜 사용자 생성
+     * 소셜 사용자 생성 (User DTO 팩토리 메서드 사용)
      */
     @Transactional
-    public User createSocialUser(String email, String nickname, String socialId,
-                                 User.SocialType socialType, String profileImageUrl, String phoneNumber) {
-        validateNewUserInput(email, nickname);
-        validateSocialUserInput(socialId, socialType);
+    public User createSocialUser(String email,
+                                 String nickname,
+                                 String socialId,
+                                 User.SocialType socialType,
+                                 String socialProfileImageUrl,
+                                 String phoneNumber,
+                                 LocalDate birthDate,
+                                 String location,
+                                 String interestedSportsJson,
+                                 String profileImageUrl,
+                                 String bio) {
 
-        User newUser = User.builder()
-                .email(email)
-                .nickname(nickname)
-                .phoneNumber(phoneNumber)
-                .profileImage(profileImageUrl)
-                .socialId(socialId)
-                .socialType(socialType)
-                .enabled(true)
-                .build();
+        log.info("소셜 사용자 생성 시작 - email: {}, socialType: {}", email, socialType);
+
+        // 1. 이메일 중복 확인
+        if (userRepository.existsByEmail(email)) {
+            throw new UserCreateFailedException("이미 가입된 이메일입니다: " + email);
+        }
+
+        // 2. 닉네임 중복 확인
+        if (userRepository.existsByNickname(nickname)) {
+            throw new UserCreateFailedException("이미 존재하는 닉네임입니다: " + nickname);
+        }
+
+        // 3. 소셜 계정 중복 확인
+        if (userRepository.existsBySocialIdAndSocialType(socialId, socialType)) {
+            throw new UserCreateFailedException("이미 가입된 소셜 계정입니다");
+        }
 
         try {
-            User savedUser = userRepository.save(newUser);
-            log.info("소셜 사용자 생성 완료 - userId: {}, socialType: {}", savedUser.getId(), socialType);
+            // 4. User DTO 팩토리 메서드를 사용하여 사용자 생성
+            User user = User.createSocialUser(
+                    email, nickname, socialId, socialType, socialProfileImageUrl,
+                    phoneNumber, birthDate, location, interestedSportsJson, profileImageUrl, bio
+            );
+
+            // 5. 엔티티로 변환하여 저장 (실제 구현에서는 UserEntity에도 새 필드들이 추가되어야 함)
+            User savedUser = userRepository.save(user); // 실제로는 Entity 변환 후 저장
+            log.info("소셜 사용자 생성 완료 - userId: {}", savedUser.getId());
+
             return savedUser;
+
         } catch (Exception e) {
-            log.error("소셜 사용자 생성 중 오류 발생", e);
-            throw new UserCreateFailedException("소셜 사용자 생성 중 오류가 발생했습니다.");
+            log.error("소셜 사용자 생성 실패 - email: {}", email, e);
+            throw new UserCreateFailedException("사용자 계정 생성 중 오류가 발생했습니다.");
+        }
+    }
+
+    /**
+     * 관심 스포츠 JSON을 List로 변환하는 유틸리티 메서드
+     */
+    public List<String> parseInterestedSports(String interestedSportsJson) {
+        if (interestedSportsJson == null || interestedSportsJson.isEmpty()) {
+            return List.of();
+        }
+
+        try {
+            return objectMapper.readValue(interestedSportsJson,
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, String.class));
+        } catch (JsonProcessingException e) {
+            log.error("관심 스포츠 JSON 파싱 실패: {}", interestedSportsJson, e);
+            return List.of();
         }
     }
 

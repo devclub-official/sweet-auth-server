@@ -14,11 +14,16 @@ import com.ptpt.authservice.exceptions.social.SocialPlatformException;
 import com.ptpt.authservice.exceptions.social.SocialTokenInvalidException;
 import com.ptpt.authservice.exceptions.user.UserCreateFailedException;
 import com.ptpt.authservice.exceptions.user.UserNotFoundException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.Period;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -30,6 +35,7 @@ public class AuthService {
     private final TokenService tokenService;
     private final SocialLoginService socialLoginService;
     private final Map<String, SocialService> socialServices;
+    private final ObjectMapper objectMapper;
 
     /**
      * 일반 로그인 처리
@@ -74,7 +80,7 @@ public class AuthService {
      */
     @Transactional
     public TokenResponse completeSocialSignup(String tempToken, CompleteSignupRequest request) {
-        log.info("소셜 회원가입 완료 요청");
+        log.info("소셜 회원가입 완료 요청 - nickname: {}", request.getNickname());
 
         // 1. 요청 데이터 검증
         try {
@@ -92,17 +98,25 @@ public class AuthService {
         // 4. 추가 필드 검증
         validateAdditionalFields(request);
 
-        // 5. 사용자 생성
+        // 5. 관심 스포츠를 JSON 문자열로 변환
+        String interestedSportsJson = convertSportsListToJson(request.getInterestedSports());
+
+        // 6. 사용자 생성
         User newUser = userService.createSocialUser(
                 tempUserInfo.getEmail(),
                 finalNickname,
                 tempUserInfo.getSocialId(),
                 tempUserInfo.getSocialType(),
                 tempUserInfo.getProfileImageUrl(),
-                request.getPhoneNumber()
+                request.getPhoneNumber(),
+                request.getBirthDate(),
+                request.getLocation(),
+                interestedSportsJson,
+                request.getProfileImageUrl(), // 사용자가 새로 업로드한 이미지
+                request.getBio()
         );
 
-        // 4. 토큰 발급
+        // 7. 토큰 발급
         return tokenService.generateTokens(newUser);
     }
 
@@ -121,6 +135,34 @@ public class AuthService {
         if (request.getBio() != null && request.getBio().length() > 500) {
             throw new AuthServiceException(ApiResponseCode.USER_CREATE_FAILED, "자기소개는 500자를 초과할 수 없습니다.");
         }
+
+        // 생년월일 검증 (만 14세 이상, 120세 이하)
+        if (request.getBirthDate() != null) {
+            LocalDate now = LocalDate.now();
+            int age = Period.between(request.getBirthDate(), now).getYears();
+
+            if (age < 14) {
+                throw new AuthServiceException(ApiResponseCode.USER_CREATE_FAILED, "만 14세 이상만 가입할 수 있습니다.");
+            }
+            if (age > 120) {
+                throw new AuthServiceException(ApiResponseCode.USER_CREATE_FAILED, "올바르지 않은 생년월일입니다.");
+            }
+        }
+
+        // 관심 스포츠 검증
+        if (request.getInterestedSports() != null) {
+            if (request.getInterestedSports().size() > 5) {
+                throw new AuthServiceException(ApiResponseCode.USER_CREATE_FAILED, "관심 스포츠는 최대 5개까지 선택할 수 있습니다.");
+            }
+
+            // 유효한 스포츠인지 검증
+            List<String> validSports = getValidSportsList();
+            for (String sport : request.getInterestedSports()) {
+                if (!validSports.contains(sport)) {
+                    throw new AuthServiceException(ApiResponseCode.USER_CREATE_FAILED, "올바르지 않은 스포츠가 포함되어 있습니다: " + sport);
+                }
+            }
+        }
     }
 
     /**
@@ -130,6 +172,30 @@ public class AuthService {
         // 간단한 한국 전화번호 형식 검증
         String phoneRegex = "^01[0-9]-?[0-9]{3,4}-?[0-9]{4}$";
         return phoneNumber.matches(phoneRegex);
+    }
+
+    /**
+     * 관심 스포츠 목록을 JSON 문자열로 변환
+     */
+    private String convertSportsListToJson(List<String> sports) {
+        try {
+            return objectMapper.writeValueAsString(sports);
+        } catch (JsonProcessingException e) {
+            log.error("관심 스포츠 JSON 변환 실패", e);
+            throw new AuthServiceException(ApiResponseCode.USER_CREATE_FAILED, "관심 스포츠 정보 처리 중 오류가 발생했습니다.");
+        }
+    }
+
+    /**
+     * 유효한 스포츠 목록 반환
+     */
+    private List<String> getValidSportsList() {
+        return List.of(
+                "축구", "농구", "야구", "배구", "테니스", "탁구", "배드민턴", "골프",
+                "수영", "육상", "체조", "태권도", "유도", "복싱", "레슬링", "펜싱",
+                "양궁", "사격", "사이클", "스케이팅", "스키", "스노보드", "서핑", "요트",
+                "클라이밍", "볼링", "당구", "다트", "E스포츠", "기타"
+        );
     }
 
     /**
@@ -169,83 +235,4 @@ public class AuthService {
 
         return finalNickname;
     }
-
-//    public SocialLoginResponse handleKakaoLogin(KakaoUserInfoResponseDTO kakaoUserInfo) {
-//        String email = kakaoUserInfo.getKakaoAccount().getEmail();
-//        String socialId = String.valueOf(kakaoUserInfo.getId());
-//
-//        // 기존 소셜 사용자인지 확인
-//        Optional<User> existingSocialUser = userService.findBySocialInfo(socialId, User.SocialType.KAKAO);
-//        if (existingSocialUser.isPresent()) {
-//            // 기존 소셜 사용자 로그인 처리
-//            TokenResponseDTO tokens = generateTokensForUser(existingSocialUser.get());
-//            return SocialLoginResponse.builder()
-//                    .status("LOGIN_SUCCESS")
-//                    .tokens(tokens)
-//                    .build();
-//        }
-//
-//        // 이메일로 일반 가입된 사용자인지 확인
-//        Optional<User> existingEmailUser = userService.findByEmail(email);
-//        if (existingEmailUser.isPresent() && existingEmailUser.get().isNormalUser()) {
-//            throw new IllegalArgumentException("해당 이메일로 이미 일반 가입된 계정이 있습니다. 일반 로그인을 이용해 주세요.");
-//        }
-//
-//        // 신규 사용자 - 임시 토큰 발급
-//        TempUserInfo tempUserInfo = TempUserInfo.builder()
-//                .email(email)
-//                .socialId(socialId)
-//                .socialType(User.SocialType.KAKAO)
-//                .nickname(kakaoUserInfo.getKakaoAccount().getProfile().getNickName())
-//                .profileImageUrl(kakaoUserInfo.getKakaoAccount().getProfile().getProfileImageUrl())
-//                .build();
-//
-//        String tempToken = jwtUtil.generateTempToken(tempUserInfo);
-//
-//        return SocialLoginResponse.builder()
-//                .status("SIGNUP_REQUIRED")
-//                .tempToken(tempToken)
-//                .tempUserInfo(tempUserInfo)
-//                .requiredFields(Arrays.asList("phoneNumber", "agreeTerms"))
-//                .build();
-//    }
-//
-//    public TokenResponseDTO completeSocialSignup(String tempToken, CompleteSignupRequest request) {
-//        // 임시 토큰 검증
-//        if (!jwtUtil.validateToken(tempToken) || !jwtUtil.isTempToken(tempToken)) {
-//            throw new IllegalArgumentException("유효하지 않은 임시 토큰입니다");
-//        }
-//
-//        // 임시 사용자 정보 추출
-//        TempUserInfo tempUserInfo = jwtUtil.extractTempUserInfo(tempToken);
-//
-//        // 닉네임 중복 확인 (변경된 경우)
-//        String finalNickname = request.getNickname() != null ? request.getNickname() : tempUserInfo.getNickname();
-//        if (!finalNickname.equals(tempUserInfo.getNickname()) && userRepository.existsByNickname(finalNickname)) {
-//            throw new IllegalArgumentException("이미 존재하는 닉네임입니다");
-//        }
-//
-//        // 실제 사용자 생성
-//        User newUser = userService.createSocialUser(
-//                tempUserInfo.getEmail(),
-//                finalNickname,
-//                tempUserInfo.getSocialId(),
-//                tempUserInfo.getSocialType(),
-//                tempUserInfo.getProfileImageUrl(),
-//                request.getPhoneNumber()
-//        );
-//
-//        // 정식 토큰 발급
-//        return generateTokensForUser(newUser);
-//    }
-//
-//    private TokenResponseDTO generateTokensForUser(User user) {
-//        String accessToken = jwtUtil.generateAccessToken(user);
-//        String refreshToken = jwtUtil.generateRefreshToken(user);
-//
-//        return TokenResponseDTO.builder()
-//                .accessToken(accessToken)
-//                .refreshToken(refreshToken)
-//                .build();
-//    }
 }
