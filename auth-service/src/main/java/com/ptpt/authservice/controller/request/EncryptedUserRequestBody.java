@@ -13,7 +13,7 @@ public class EncryptedUserRequestBody {
     @Schema(description = "사용자 이메일", example = "user@example.com")
     private final String email;
 
-    @PasswordEncryption
+//    @PasswordEncryption
     @Schema(description = "사용자 비밀번호 (자동으로 암호화됨)", example = "password123")
     private final String password;
 

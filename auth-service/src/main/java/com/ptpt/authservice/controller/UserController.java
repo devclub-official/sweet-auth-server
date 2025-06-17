@@ -7,7 +7,7 @@ import com.ptpt.authservice.controller.response.UserResponse;
 import com.ptpt.authservice.controller.response.CustomApiResponse;
 import com.ptpt.authservice.dto.User;
 import com.ptpt.authservice.enums.ApiResponseCode;
-import com.ptpt.authservice.exceptions.AuthServiceException;
+import com.ptpt.authservice.exception.AuthServiceException;
 import com.ptpt.authservice.service.UserService;
 import com.ptpt.authservice.swagger.SwaggerErrorResponseDTO;
 import com.ptpt.authservice.swagger.UserControllerDocs;
@@ -113,7 +113,7 @@ public class UserController implements UserControllerDocs {
         }
 
         log.info("프로필 이미지 요청: {}", profileImage != null ? profileImage.getOriginalFilename() : "없음");
-
+        log.info("소개글 {}", userUpdateRequestBody.getBio());
 
         // 사용자 정보 업데이트
         User updatedUser = userService.updateUserInfo(userDetails.getEmail(), userUpdateRequestBody, profileImage);
@@ -123,6 +123,7 @@ public class UserController implements UserControllerDocs {
                 .email(updatedUser.getEmail())
                 .username(updatedUser.getNickname())
                 .profileImage(updatedUser.getProfileImage())
+                .bio(updatedUser.getBio())
                 .build();
 
         return ResponseEntity.ok(CustomApiResponse.of(ApiResponseCode.USER_UPDATE_SUCCESS, responseData));
@@ -165,11 +166,16 @@ public class UserController implements UserControllerDocs {
         // 인증된 사용자의 정보를 가져옵니다
         User user = userService.getUserByEmail(userDetails.getEmail());
 
+        log.info("관심 스포츠 JSON: {}", user.getInterestedSports());
+        log.info("관심 스포츠 List: {}", user.getInterestedSportsList());
+
         UserResponse responseData = UserResponse.builder()
                 .id(user.getId())
                 .email(user.getEmail())
                 .username(user.getNickname())
                 .profileImage(user.getProfileImage())
+                .interestedSports(user.getInterestedSportsList())
+                .bio(user.getBio())
                 .build();
 
         return ResponseEntity.ok(CustomApiResponse.of(ApiResponseCode.USER_READ_SUCCESS, responseData));

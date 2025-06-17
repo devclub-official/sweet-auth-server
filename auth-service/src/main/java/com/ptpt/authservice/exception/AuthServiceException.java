@@ -1,4 +1,4 @@
-package com.ptpt.authservice.exceptions;
+package com.ptpt.authservice.exception;
 
 import com.ptpt.authservice.enums.ApiResponseCode;
 import lombok.Getter;

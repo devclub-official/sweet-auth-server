@@ -4,7 +4,7 @@ import com.ptpt.authservice.controller.response.SocialLoginResponse;
 import com.ptpt.authservice.dto.SocialUserInfo;
 import com.ptpt.authservice.dto.TempUserInfo;
 import com.ptpt.authservice.dto.User;
-import com.ptpt.authservice.exceptions.social.SocialEmailAlreadyExistsException;
+import com.ptpt.authservice.exception.social.SocialEmailAlreadyExistsException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

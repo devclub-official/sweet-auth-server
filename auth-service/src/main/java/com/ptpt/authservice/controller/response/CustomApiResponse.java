@@ -26,7 +26,7 @@ public class CustomApiResponse<T> {
         UserResponse.class,
         TokenResponse.class
     },
-            example = "{\"id\":1,\"username\":\"홍길동\",\"email\":\"user@example.com\",\"profileImage\":\"profile.jpg\"}"
+            example = "{\"id\":1,\"username\":\"홍길동\",\"email\":\"user@example.com\",\"profileImage\":\"profile.jpg\",\"bio\":\"안녕하세요\"}"
     )
     T data;
 

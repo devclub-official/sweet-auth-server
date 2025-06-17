@@ -2,8 +2,8 @@ package com.ptpt.authservice.service.impl;
 
 import com.ptpt.authservice.dto.SocialUserInfo;
 import com.ptpt.authservice.dto.kakao.KakaoUserInfoResponse;
-import com.ptpt.authservice.exceptions.social.SocialPlatformException;
-import com.ptpt.authservice.exceptions.social.SocialTokenInvalidException;
+import com.ptpt.authservice.exception.social.SocialPlatformException;
+import com.ptpt.authservice.exception.social.SocialTokenInvalidException;
 import com.ptpt.authservice.service.SocialService;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import lombok.RequiredArgsConstructor;

@@ -5,10 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ptpt.authservice.controller.request.UserUpdateRequestBody;
 import com.ptpt.authservice.dto.User;
 import com.ptpt.authservice.enums.ApiResponseCode;
-import com.ptpt.authservice.exceptions.AuthServiceException;
-import com.ptpt.authservice.exceptions.social.SocialEmailAlreadyExistsException;
-import com.ptpt.authservice.exceptions.user.UserNotFoundException;
-import com.ptpt.authservice.exceptions.user.UserCreateFailedException;
+import com.ptpt.authservice.exception.AuthServiceException;
+import com.ptpt.authservice.exception.social.SocialEmailAlreadyExistsException;
+import com.ptpt.authservice.exception.user.UserNotFoundException;
+import com.ptpt.authservice.exception.user.UserCreateFailedException;
 import com.ptpt.authservice.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +41,11 @@ public class UserService {
     public User createNormalUser(String email, String password, String nickname) {
         validateNewUserInput(email, nickname);
 
+        log.info(password);
+
         String encodedPassword = passwordEncoder.encode(password);
+        log.info(encodedPassword);
+
         User newUser = User.createNormalUser(email, nickname, encodedPassword);
 
         try {
@@ -152,7 +156,8 @@ public class UserService {
             user.updateUserInfo(
                     updateRequest.getNickname(),
                     updateRequest.getPhoneNumber(),
-                    updateRequest.getProfileImage()
+                    updateRequest.getProfileImage(),
+                    updateRequest.getBio()
             );
             return userRepository.save(user);
         } catch (Exception e) {

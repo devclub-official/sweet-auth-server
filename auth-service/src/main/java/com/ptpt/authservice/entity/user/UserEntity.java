@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Where;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -47,6 +48,36 @@ public class UserEntity {
 
     @Column(name = "phone_number", length = 20)
     private String phoneNumber;
+
+    // UserEntity.java에 추가해야 할 필드들
+    @Column(name = "birth_date")
+    private LocalDate birthDate;
+
+    @Column(name = "location", length = 100)
+    private String location;
+
+    @Column(name = "interested_sports", columnDefinition = "TEXT")
+    private String interestedSports; // JSON 문자열
+
+    @Column(name = "social_profile_image", length = 500)
+    private String socialProfileImage;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "user_type", length = 20, nullable = false)
+    @Builder.Default
+    private User.UserType userType = User.UserType.NORMAL;
+
+    @Column(name = "agree_terms", nullable = false)
+    @Builder.Default
+    private Boolean agreeTerms = false;
+
+    @Column(name = "agree_privacy", nullable = false)
+    @Builder.Default
+    private Boolean agreePrivacy = false;
+
+    @Column(name = "agree_marketing", nullable = false)
+    @Builder.Default
+    private Boolean agreeMarketing = false;
 
     // ===== 소셜 로그인 관련 필드 =====
 
@@ -159,10 +190,18 @@ public class UserEntity {
                 .bio(bio)
                 .profileImage(profileImage)
                 .phoneNumber(phoneNumber)
+                .birthDate(birthDate)          // 추가
+                .location(location)            // 추가
+                .interestedSports(interestedSports)  // 추가
                 .socialId(socialId)
                 .socialType(socialType)
+                .socialProfileImage(socialProfileImage)  // 추가
+                .userType(userType)            // 추가
                 .enabled(enabled)
                 .emailVerified(emailVerified)
+                .agreeTerms(agreeTerms)        // 추가
+                .agreePrivacy(agreePrivacy)    // 추가
+                .agreeMarketing(agreeMarketing) // 추가
                 .lastLoginAt(lastLoginAt)
                 .passwordChangedAt(passwordChangedAt)
                 .createdAt(createdAt)
@@ -183,10 +222,18 @@ public class UserEntity {
                 .bio(user.getBio())
                 .profileImage(user.getProfileImage())
                 .phoneNumber(user.getPhoneNumber())
+                .birthDate(user.getBirthDate())        // 추가
+                .location(user.getLocation())          // 추가
+                .interestedSports(user.getInterestedSports())  // 추가
                 .socialId(user.getSocialId())
                 .socialType(user.getSocialType())
+                .socialProfileImage(user.getSocialProfileImage())  // 추가
+                .userType(user.getUserType())          // 추가
                 .enabled(user.getEnabled() != null ? user.getEnabled() : true)
                 .emailVerified(user.getEmailVerified() != null ? user.getEmailVerified() : false)
+                .agreeTerms(user.getAgreeTerms() != null ? user.getAgreeTerms() : false)        // 추가
+                .agreePrivacy(user.getAgreePrivacy() != null ? user.getAgreePrivacy() : false)  // 추가
+                .agreeMarketing(user.getAgreeMarketing() != null ? user.getAgreeMarketing() : false)  // 추가
                 .lastLoginAt(user.getLastLoginAt())
                 .passwordChangedAt(user.getPasswordChangedAt())
                 .createdAt(user.getCreatedAt())
@@ -227,6 +274,40 @@ public class UserEntity {
         // 이메일 인증 상태 업데이트
         if (user.getEmailVerified() != null) {
             this.emailVerified = user.getEmailVerified();
+        }
+
+        // 새로 추가된 필드들
+        if (user.getBirthDate() != null) {
+            this.birthDate = user.getBirthDate();
+        }
+
+        if (user.getLocation() != null) {
+            this.location = user.getLocation();
+        }
+
+        if (user.getInterestedSports() != null) {
+            this.interestedSports = user.getInterestedSports();
+        }
+
+        if (user.getSocialProfileImage() != null) {
+            this.socialProfileImage = user.getSocialProfileImage();
+        }
+
+        if (user.getUserType() != null) {
+            this.userType = user.getUserType();
+        }
+
+        // 약관 동의 관련
+        if (user.getAgreeTerms() != null) {
+            this.agreeTerms = user.getAgreeTerms();
+        }
+
+        if (user.getAgreePrivacy() != null) {
+            this.agreePrivacy = user.getAgreePrivacy();
+        }
+
+        if (user.getAgreeMarketing() != null) {
+            this.agreeMarketing = user.getAgreeMarketing();
         }
     }
 

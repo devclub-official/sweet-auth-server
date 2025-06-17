@@ -1,4 +1,4 @@
-package com.ptpt.authservice.exceptions.auth;
+package com.ptpt.authservice.exception.auth;
 
 public class InvalidAuthException extends RuntimeException{
     public InvalidAuthException() {

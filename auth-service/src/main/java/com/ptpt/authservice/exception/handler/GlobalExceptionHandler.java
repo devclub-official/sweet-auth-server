@@ -1,21 +1,14 @@
-package com.ptpt.authservice.exceptions.handler;
+package com.ptpt.authservice.exception.handler;
 
-import com.ptpt.authservice.controller.AuthController;
-import com.ptpt.authservice.controller.SocialController;
-import com.ptpt.authservice.controller.UserController;
 import com.ptpt.authservice.controller.response.CustomApiResponse;
 import com.ptpt.authservice.enums.ApiResponseCode;
-import com.ptpt.authservice.exceptions.AuthServiceException;
-import com.ptpt.authservice.exceptions.social.SocialPlatformException;
-import com.ptpt.authservice.exceptions.social.SocialTokenInvalidException;
+import com.ptpt.authservice.exception.AuthServiceException;
+import com.ptpt.authservice.exception.social.SocialPlatformException;
+import com.ptpt.authservice.exception.social.SocialTokenInvalidException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 //@RestControllerAdvice(annotations = {RestController.class}, basePackages = {"com.ptpt.authservice.controller"})

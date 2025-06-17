@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ptpt.authservice.annotation.PasswordEncryption;
 import com.ptpt.authservice.entity.user.UserEntity;
 import lombok.Builder;
 import lombok.Getter;
@@ -27,6 +28,7 @@ public class User implements UserDetails {
     private Long id;
     private String email;
     @JsonIgnore
+    @PasswordEncryption
     private String password;
     private String nickname;
     private String profileImage;
@@ -231,12 +233,12 @@ public class User implements UserDetails {
     }
 
     // 기본 사용자 정보 업데이트 (기존 호환성 유지)
-    public void updateUserInfo(String nickname, String phoneNumber, String profileImage) {
-        updateUserInfo(nickname, phoneNumber, profileImage, null, null, null);
+    public void updateUserInfo(String nickname, String phoneNumber, String profileImage, String bio) {
+        updateUserInfo(nickname, phoneNumber, profileImage, bio, null, null, null);
     }
 
     // 확장된 사용자 정보 업데이트
-    public void updateUserInfo(String nickname, String phoneNumber, String profileImage,
+    public void updateUserInfo(String nickname, String phoneNumber, String profileImage, String bio,
                                LocalDate birthDate, String location, List<String> interestedSportsList) {
         if (nickname != null) {
             this.nickname = nickname;
@@ -247,12 +249,19 @@ public class User implements UserDetails {
         if (profileImage != null) {
             this.profileImage = profileImage;
         }
+
+        if (bio != null) {
+            this.bio = bio;
+        }
+
         if (birthDate != null) {
             this.birthDate = birthDate;
         }
+
         if (location != null) {
             this.location = location;
         }
+
         if (interestedSportsList != null) {
             try {
                 ObjectMapper objectMapper = new ObjectMapper();

@@ -1,16 +1,14 @@
 package com.ptpt.authservice.controller;
 
-import com.ptpt.authservice.controller.request.CompleteSignupRequest;
 import com.ptpt.authservice.controller.request.LoginRequest;
 import com.ptpt.authservice.controller.request.RefreshTokenRequest;
 import com.ptpt.authservice.controller.response.CustomApiResponse;
 import com.ptpt.authservice.controller.response.TokenResponse;
 import com.ptpt.authservice.enums.ApiResponseCode;
-import com.ptpt.authservice.exceptions.token.BlacklistedTokenException;
-import com.ptpt.authservice.exceptions.token.InvalidTokenException;
+import com.ptpt.authservice.exception.token.BlacklistedTokenException;
+import com.ptpt.authservice.exception.token.InvalidTokenException;
 import com.ptpt.authservice.service.AuthService;
 import com.ptpt.authservice.service.JwtBlacklistService;
-import com.ptpt.authservice.service.UserService;
 import com.ptpt.authservice.swagger.SwaggerAuthResponseDTO;
 import com.ptpt.authservice.swagger.SwaggerErrorResponseDTO;
 import com.ptpt.authservice.util.JwtUtil;

@@ -1,9 +1,8 @@
-package com.ptpt.authservice.exceptions.handler;
+package com.ptpt.authservice.exception.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ptpt.authservice.controller.response.CustomApiResponse;
 import com.ptpt.authservice.enums.ApiResponseCode;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;

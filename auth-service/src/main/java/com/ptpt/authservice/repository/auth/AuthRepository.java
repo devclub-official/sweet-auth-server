@@ -3,7 +3,7 @@ package com.ptpt.authservice.repository.auth;
 import com.ptpt.authservice.controller.request.UserUpdateRequestBody;
 import com.ptpt.authservice.dto.User;
 import com.ptpt.authservice.entity.user.UserEntity;
-import com.ptpt.authservice.exceptions.auth.InvalidAuthException;
+import com.ptpt.authservice.exception.auth.InvalidAuthException;
 import com.ptpt.authservice.repository.user.UserJpaRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

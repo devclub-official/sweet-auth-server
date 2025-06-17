@@ -1,7 +1,7 @@
-package com.ptpt.authservice.exceptions.token;
+package com.ptpt.authservice.exception.token;
 
 import com.ptpt.authservice.enums.ApiResponseCode;
-import com.ptpt.authservice.exceptions.AuthServiceException;
+import com.ptpt.authservice.exception.AuthServiceException;
 
 public class BlacklistedTokenException extends AuthServiceException {
     public BlacklistedTokenException() {

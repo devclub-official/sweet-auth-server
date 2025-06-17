@@ -1,7 +1,7 @@
-package com.ptpt.authservice.exceptions.user;
+package com.ptpt.authservice.exception.user;
 
 import com.ptpt.authservice.enums.ApiResponseCode;
-import com.ptpt.authservice.exceptions.AuthServiceException;
+import com.ptpt.authservice.exception.AuthServiceException;
 
 public class UserNotFoundException extends AuthServiceException {
     public UserNotFoundException() {

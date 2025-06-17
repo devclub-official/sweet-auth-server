@@ -3,10 +3,10 @@ spring:
     name: auth-service
   datasource:
     hikari:
-      jdbc-url: jdbc:mysql://localhost:33306/ptpt
+      jdbc-url: jdbc:mysql://211.254.215.146:65000/ptpt
       driver-class-name: com.mysql.cj.jdbc.Driver
-      username: root
-      password: qwer1234
+      username: ptpt_user
+      password: ptpt@user138
   jpa:
     properties:
       hibernate:
@@ -17,9 +17,9 @@ spring:
     open-in-view: false
     database: mysql
     show-sql: true
-  sql:
-    init:
-      mode: always
+#  sql:
+#    init:
+#      mode: always
 #      data-locations: classpath:sql/data.sql
 #      schema-locations: classpath:sql/schema.sql
 
@@ -45,7 +45,7 @@ logging:
 
 springdoc:
   swagger-ui:
-    server-url: https://wholly-climbing-gnat.ngrok-free.app
+#    server-url: https://wholly-climbing-gnat.ngrok-free.app
 
 #springdoc:
 #  swagger-ui:

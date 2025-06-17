@@ -2,7 +2,7 @@ package com.ptpt.authservice.util;
 
 import com.ptpt.authservice.dto.TempUserInfo;
 import com.ptpt.authservice.dto.User;
-import com.ptpt.authservice.exceptions.token.*;
+import com.ptpt.authservice.exception.token.*;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;

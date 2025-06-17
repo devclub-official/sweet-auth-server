@@ -1,7 +1,7 @@
-package com.ptpt.authservice.exceptions.social;
+package com.ptpt.authservice.exception.social;
 
 import com.ptpt.authservice.enums.ApiResponseCode;
-import com.ptpt.authservice.exceptions.AuthServiceException;
+import com.ptpt.authservice.exception.AuthServiceException;
 
 public class SocialLoginFailedException extends AuthServiceException {
     public SocialLoginFailedException() {

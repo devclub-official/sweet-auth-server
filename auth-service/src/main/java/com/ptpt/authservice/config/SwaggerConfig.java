@@ -13,15 +13,15 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class SwaggerConfig {
 
-    @Value("${springdoc.swagger-ui.server-url}")
-    private String serverUrl;
+//    @Value("${springdoc.swagger-ui.server-url}")
+//    private String serverUrl;
 
     @Bean
     public OpenAPI customOpenAPI() {
 
 //        https://kwakscoding.tistory.com/49
         Server server = new Server();
-        server.setUrl(serverUrl);
+//        server.setUrl(serverUrl);
 
         return new OpenAPI()
                 .components(new Components()
