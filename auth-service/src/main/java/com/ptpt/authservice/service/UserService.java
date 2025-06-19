@@ -3,6 +3,7 @@ package com.ptpt.authservice.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ptpt.authservice.controller.request.UserUpdateRequestBody;
+import com.ptpt.authservice.controller.response.UserProfileResponse;
 import com.ptpt.authservice.dto.User;
 import com.ptpt.authservice.enums.ApiResponseCode;
 import com.ptpt.authservice.exception.AuthServiceException;
@@ -165,6 +166,25 @@ public class UserService {
             throw new AuthServiceException(ApiResponseCode.USER_UPDATE_FAILED, "사용자 정보 업데이트 중 오류가 발생했습니다.");
         }
     }
+
+    /**
+     * 사용자 ID로 프로필 조회
+     */
+    public UserProfileResponse getUserProfileById(Long userId) {
+        log.info("사용자 프로필 조회 요청 - userId: {}", userId);
+
+        User user = getUserById(userId);
+
+        return UserProfileResponse.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .username(user.getNickname())
+                .profileImage(user.getProfileImage())
+                .bio(user.getBio())
+                .interestedSports(user.getInterestedSportsList())
+                .build();
+    }
+
 
     /**
      * 비밀번호 변경

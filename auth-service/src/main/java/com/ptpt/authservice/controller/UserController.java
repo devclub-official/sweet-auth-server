@@ -3,6 +3,7 @@ package com.ptpt.authservice.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ptpt.authservice.controller.request.EncryptedUserRequestBody;
 import com.ptpt.authservice.controller.request.UserUpdateRequestBody;
+import com.ptpt.authservice.controller.response.UserProfileResponse;
 import com.ptpt.authservice.controller.response.UserResponse;
 import com.ptpt.authservice.controller.response.CustomApiResponse;
 import com.ptpt.authservice.dto.User;
@@ -179,5 +180,50 @@ public class UserController implements UserControllerDocs {
                 .build();
 
         return ResponseEntity.ok(CustomApiResponse.of(ApiResponseCode.USER_READ_SUCCESS, responseData));
+    }
+
+    /**
+     * 사용자 ID로 프로필 조회 API
+     */
+    @Operation(
+            summary = "사용자 프로필 조회 API",
+            description = "사용자 ID로 특정 사용자의 프로필 정보를 조회합니다.",
+            security = @SecurityRequirement(name = "BearerAuth"),
+            tags = {"사용자 API"}
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "프로필 조회 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = CustomApiResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "사용자를 찾을 수 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = SwaggerErrorResponseDTO.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "인증 실패",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = SwaggerErrorResponseDTO.class)
+                    )
+            )
+    })
+    @GetMapping("/users/{userId}")
+    public ResponseEntity<CustomApiResponse<UserProfileResponse>> getUserById(
+            @AuthenticationPrincipal User userDetails,
+            @PathVariable Long userId) {
+
+        UserProfileResponse userProfile = userService.getUserProfileById(userId);
+
+        return ResponseEntity.ok(CustomApiResponse.of(ApiResponseCode.USER_READ_SUCCESS, userProfile));
     }
 }
