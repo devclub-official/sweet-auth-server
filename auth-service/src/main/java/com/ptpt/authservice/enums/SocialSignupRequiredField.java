@@ -13,12 +13,12 @@ import java.util.stream.Collectors;
 public enum SocialSignupRequiredField {
 
     NICKNAME("nickname", "닉네임", true),
-    BIRTH_DATE("birthDate", "생년월일", true),
+    BIRTH_DATE("birthDate", "생년월일", false),
     LOCATION("location", "거주지", true),
     INTERESTED_SPORTS("interestedSports", "관심 스포츠", true),
     PHONE_NUMBER("phoneNumber", "전화번호", false),
     PROFILE_IMAGE("profileImageUrl", "프로필 이미지", false),
-    AGREE_TERMS("agreeTerms", "이용약관 동의", true),
+    AGREE_TERMS("agreeTerms", "이용약관 동의", false),
     BIO("bio", "자기소개", false);
 
     private final String fieldName;
@@ -77,9 +77,9 @@ public enum SocialSignupRequiredField {
         }
 
         // 생년월일 검증
-        if (request.getBirthDate() == null) {
-            throw new IllegalArgumentException("생년월일은 필수입니다.");
-        }
+//        if (request.getBirthDate() == null) {
+//            throw new IllegalArgumentException("생년월일은 필수입니다.");
+//        }
 
         // 거주지 검증
         if (request.getLocation() == null || request.getLocation().trim().isEmpty()) {
@@ -92,9 +92,9 @@ public enum SocialSignupRequiredField {
         }
 
         // 약관 동의 검증
-        if (request.getAgreeTerms() == null || !request.getAgreeTerms()) {
-            throw new IllegalArgumentException("서비스 이용약관에 동의해야 합니다.");
-        }
+//        if (request.getAgreeTerms() == null || !request.getAgreeTerms()) {
+//            throw new IllegalArgumentException("서비스 이용약관에 동의해야 합니다.");
+//        }
     }
 
     /**

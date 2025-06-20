@@ -45,7 +45,8 @@ logging:
 
 springdoc:
   swagger-ui:
-    server-url: https://e00b-59-8-4-136.ngrok-free.app
+    server-url: https://5b85-59-8-4-136.ngrok-free.app
+
 
 #springdoc:
 #  swagger-ui:

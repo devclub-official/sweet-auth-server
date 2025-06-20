@@ -217,7 +217,7 @@ public class UserController implements UserControllerDocs {
                     )
             )
     })
-    @GetMapping("/users/{userId}")
+    @GetMapping("/profiles/{userId}")
     public ResponseEntity<CustomApiResponse<UserProfileResponse>> getUserById(
             @AuthenticationPrincipal User userDetails,
             @PathVariable Long userId) {

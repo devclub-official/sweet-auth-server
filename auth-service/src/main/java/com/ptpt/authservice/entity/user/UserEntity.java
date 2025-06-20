@@ -34,7 +34,7 @@ public class UserEntity {
     @Column(name = "email", nullable = false, unique = true, length = 100)
     private String email;
 
-    @Column(name = "password", length = 255)
+    @Column(name = "password")
     private String password; // 소셜 로그인 사용자는 null
 
     @Column(name = "nickname", nullable = false, unique = true, length = 30)

@@ -19,7 +19,7 @@ public class CompleteSignupRequest {
 
     private String phoneNumber;
 
-    @NotNull(message = "생년월일은 필수입니다")
+//    @NotNull(message = "생년월일은 필수입니다")
     @Past(message = "생년월일은 과거 날짜여야 합니다")
     private LocalDate birthDate; // 생년월일
 
@@ -32,7 +32,7 @@ public class CompleteSignupRequest {
 
     private String profileImageUrl; // 프로필 이미지 URL (선택사항)
 
-    @NotNull(message = "약관 동의는 필수입니다")
+//    @NotNull(message = "약관 동의는 필수입니다")
     private Boolean agreeTerms;
 
     private String bio;
@@ -44,9 +44,9 @@ public class CompleteSignupRequest {
         SocialSignupRequiredField.validateRequiredFields(this);
 
         // 추가 비즈니스 로직 검증
-        if (agreeTerms == null || !agreeTerms) {
-            throw new IllegalArgumentException("서비스 이용약관에 동의해야 합니다.");
-        }
+//        if (agreeTerms == null || !agreeTerms) {
+//            throw new IllegalArgumentException("서비스 이용약관에 동의해야 합니다.");
+//        }
 
         // 생년월일 검증 (만 14세 이상)
         if (birthDate != null && birthDate.isAfter(LocalDate.now().minusYears(14))) {

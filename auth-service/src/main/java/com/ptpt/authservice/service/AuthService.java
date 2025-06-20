@@ -132,8 +132,8 @@ public class AuthService {
         }
 
         // Bio 길이 제한
-        if (request.getBio() != null && request.getBio().length() > 500) {
-            throw new AuthServiceException(ApiResponseCode.USER_CREATE_FAILED, "자기소개는 500자를 초과할 수 없습니다.");
+        if (request.getBio() != null && request.getBio().length() > 150) {
+            throw new AuthServiceException(ApiResponseCode.USER_CREATE_FAILED, "자기소개는 150자를 초과할 수 없습니다.");
         }
 
         // 생년월일 검증 (만 14세 이상, 120세 이하)
@@ -192,9 +192,7 @@ public class AuthService {
     private List<String> getValidSportsList() {
         return List.of(
                 "축구", "농구", "야구", "배구", "테니스", "탁구", "배드민턴", "골프",
-                "수영", "육상", "체조", "태권도", "유도", "복싱", "레슬링", "펜싱",
-                "양궁", "사격", "사이클", "스케이팅", "스키", "스노보드", "서핑", "요트",
-                "클라이밍", "볼링", "당구", "다트", "E스포츠", "기타"
+                "수영", "육상", "헬스", "사이클", "클라이밍", "기타"
         );
     }
 

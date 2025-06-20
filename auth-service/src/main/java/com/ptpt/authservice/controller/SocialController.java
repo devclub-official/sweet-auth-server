@@ -410,7 +410,6 @@ public class SocialController {
 
         // "Bearer " 제거
         String token = tempToken.replace("Bearer ", "");
-        log.info("소셜 회원가입 완료 요청 - nickname={}", request.getNickname());
 
         TokenResponse tokens = authService.completeSocialSignup(token, request);
 

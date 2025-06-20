@@ -59,7 +59,7 @@ public class SecurityConfig {
                     "/swagger-resources/**",
                     "/webjars/**"
             ).permitAll(); // swagger 관련 endpoint 허용
-
+            c.requestMatchers("/images/profiles/**").permitAll();
             c.requestMatchers("/social/**").permitAll();
             c.requestMatchers("/img/**", "/css/**", "/js/**").permitAll(); // 정적 리소스 허용
             c.requestMatchers("/auth/**").permitAll();  // 인증 관련 엔드포인트 허용
