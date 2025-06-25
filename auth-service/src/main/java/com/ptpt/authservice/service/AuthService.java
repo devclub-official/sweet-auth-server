@@ -156,12 +156,12 @@ public class AuthService {
             }
 
             // 유효한 스포츠인지 검증
-            List<String> validSports = getValidSportsList();
-            for (String sport : request.getInterestedSports()) {
-                if (!validSports.contains(sport)) {
-                    throw new AuthServiceException(ApiResponseCode.USER_CREATE_FAILED, "올바르지 않은 스포츠가 포함되어 있습니다: " + sport);
-                }
-            }
+//            List<String> validSports = getValidSportsList();
+//            for (String sport : request.getInterestedSports()) {
+//                if (!validSports.contains(sport)) {
+//                    throw new AuthServiceException(ApiResponseCode.USER_CREATE_FAILED, "올바르지 않은 스포츠가 포함되어 있습니다: " + sport);
+//                }
+//            }
         }
     }
 

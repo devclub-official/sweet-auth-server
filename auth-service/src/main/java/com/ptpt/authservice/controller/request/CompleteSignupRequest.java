@@ -59,9 +59,9 @@ public class CompleteSignupRequest {
         }
 
         // 거주지 유효성 검증 (한국 시/도 목록)
-        if (location != null && !isValidLocation(location)) {
-            throw new IllegalArgumentException("올바른 거주지를 선택해주세요.");
-        }
+//        if (location != null && !isValidLocation(location)) {
+//            throw new IllegalArgumentException("올바른 거주지를 선택해주세요.");
+//        }
     }
 
     /**

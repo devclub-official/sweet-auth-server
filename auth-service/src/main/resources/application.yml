@@ -45,7 +45,7 @@ logging:
 
 springdoc:
   swagger-ui:
-    server-url: https://5b85-59-8-4-136.ngrok-free.app
+    server-url: https://porpoise-musical-orca.ngrok-free.app
 
 
 #springdoc:

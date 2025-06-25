@@ -1,7 +1,6 @@
 package com.ptpt.authservice.dto.naver;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.ptpt.authservice.service.NaverService;
 import lombok.Data;
 
 /**
